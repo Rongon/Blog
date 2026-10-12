@@ -49,6 +49,8 @@ import { projects } from '@/data/projects'
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .head {
   padding: 72px 0 48px;
   border-bottom: 1px solid var(--rule);
@@ -161,14 +163,29 @@ h2 {
   white-space: nowrap;
 }
 
-@media (max-width: 900px) {
+@include md-down {
   .prow {
     grid-template-columns: 1fr;
     gap: 24px;
+    padding: 34px 0;
   }
 
   .more {
     margin-left: 0;
+  }
+}
+
+@include sm-down {
+  .head {
+    padding: 40px 0 30px;
+  }
+
+  .prow {
+    padding: 28px 0;
+  }
+
+  h2 {
+    font-size: 21px;
   }
 }
 </style>

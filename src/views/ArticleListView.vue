@@ -157,6 +157,8 @@ function hasFilter() {
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .page {
   padding: 56px 0 72px;
 }
@@ -353,5 +355,15 @@ function hasFilter() {
   display: flex;
   justify-content: center;
   padding-top: 36px;
+}
+
+@include sm-down {
+  .page {
+    padding: 36px 0 56px;
+  }
+
+  .search {
+    max-width: none;
+  }
 }
 </style>

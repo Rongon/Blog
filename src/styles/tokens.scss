@@ -124,6 +124,52 @@
   --el-text-color-placeholder: #7c7a76;
 }
 
+/* -----------------------------------------------------------------------------
+   Element Plus 在深色下还差的那几块
+
+   我们只在四个地方用了 Element Plus：分页器、消息提示、确认框、登录注册表单。
+   它们大多能跟着 --el-* 变量自动变色，但「浅色底」那一类是编译期拿白色
+   混合算出来的固定色值，不会跟着变——最典型的就是 ElMessage 在深色下
+   变成一块刺眼的浅粉底、配上近白色的文字，基本看不清。
+
+   所以这里把实际用到的那几个语义色手动换成「深色底上的结果」。
+   也解释了为什么不直接引 element-plus 的 dark/css-vars.css：
+   那一份会用一个宽泛的 html.dark 规则盖掉我们自己的整套配色，
+   而我们只需要这几个组件的正确表现。
+   ----------------------------------------------------------------------------- */
+[data-theme='dark'] {
+  /* 语义色与它们的浅底（ElMessage / ElMessageBox / 表单校验红字） */
+  --el-color-error: #f0736a;
+  --el-color-danger: #f0736a;
+  --el-color-error-light-9: #3a1f1d;
+  --el-color-error-light-8: #552825;
+  --el-color-success: #2dd4bf;
+  --el-color-success-light-9: #14302b;
+  --el-color-success-light-8: #1d3f38;
+  --el-color-warning: #d9a441;
+  --el-color-warning-light-9: #362b17;
+  --el-color-warning-light-8: #4a3a1f;
+  --el-color-info: #9a968f;
+  --el-color-info-light-9: #23262e;
+  --el-color-info-light-8: #2b2f39;
+
+  /* 确认框背后的遮罩。默认是 #ffffffe6（白色半透明），深色下会把整页洗白 */
+  --el-mask-color: rgba(10, 11, 13, 0.7);
+  --el-overlay-color: rgba(10, 11, 13, 0.8);
+
+  /* 阴影：深色底上要更重才看得出来 */
+  --el-box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+  --el-box-shadow-light: 0 6px 18px rgba(0, 0, 0, 0.5);
+  --el-box-shadow-lighter: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+  --el-border-color-lighter: #2a2e36;
+  --el-border-color-extra-light: #262a31;
+  --el-fill-color: #262a31;
+  --el-fill-color-light: #23262e;
+  --el-text-color-secondary: #9a968f;
+  --el-text-color-disabled: #6b6862;
+}
+
 /* 尊重「减少动态效果」的系统偏好 */
 @media (prefers-reduced-motion: reduce) {
   *,

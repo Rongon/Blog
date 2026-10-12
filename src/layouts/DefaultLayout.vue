@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useTheme } from '@/composables/useTheme'
 import { useAuthStore } from '@/stores/auth'
 
 const { theme, toggleTheme } = useTheme()
 const auth = useAuthStore()
+const route = useRoute()
 
 const nav = [
   { to: '/', label: '首页' },
@@ -12,6 +15,17 @@ const nav = [
   { to: '/articles', label: '文章' },
   { to: '/about', label: '关于' },
 ]
+
+/** 窄屏下的折叠菜单。<900px 时桌面导航是隐藏的，没有这个就没法在手机上换页面 */
+const menuOpen = ref(false)
+
+// 点了菜单里的链接就自动收起，否则跳完页面菜单还挂着
+watch(
+  () => route.fullPath,
+  () => {
+    menuOpen.value = false
+  },
+)
 
 async function onSignOut() {
   await auth.signOut()
@@ -41,7 +55,23 @@ async function onSignOut() {
       <button class="tgl" type="button" @click="toggleTheme">
         {{ theme === 'dark' ? '浅色模式' : '深色模式' }}
       </button>
+
+      <button
+        class="burger"
+        type="button"
+        :aria-expanded="menuOpen"
+        aria-controls="site-menu"
+        @click="menuOpen = !menuOpen"
+      >
+        {{ menuOpen ? '关闭' : '菜单' }}
+      </button>
     </div>
+
+    <nav id="site-menu" class="menu" :class="{ open: menuOpen }">
+      <RouterLink v-for="item in nav" :key="item.to" :to="item.to">
+        {{ item.label }}
+      </RouterLink>
+    </nav>
   </header>
 
   <main>
@@ -56,6 +86,8 @@ async function onSignOut() {
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .top {
   position: sticky;
   top: 0;
@@ -121,7 +153,6 @@ async function onSignOut() {
   gap: 10px;
   font-family: var(--font-sans);
   font-size: 13.5px;
-  margin-left: 4px;
 
   .who {
     color: var(--muted);
@@ -171,6 +202,49 @@ async function onSignOut() {
   }
 }
 
+/* 汉堡按钮：宽屏不显示 */
+.burger {
+  display: none;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+}
+
+/* 折叠菜单：宽屏不显示，展开时从顶栏下面滑出来 */
+.menu {
+  display: none;
+  flex-direction: column;
+  border-top: 1px solid var(--rule-soft);
+  background: var(--bg);
+
+  a {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    color: var(--muted);
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--rule-soft);
+
+    &:hover {
+      color: var(--ink);
+      border-bottom-color: var(--rule-soft);
+    }
+
+    &.router-link-exact-active {
+      color: var(--ink);
+    }
+  }
+}
+
 .foot {
   border-top: 1px solid var(--rule);
   padding: 36px 0 64px;
@@ -180,9 +254,48 @@ async function onSignOut() {
   font-size: 13px;
 }
 
-@media (max-width: 900px) {
+@include md-down {
+  .top-in {
+    gap: 14px;
+    padding: 0 16px;
+  }
+
   .nav {
     display: none;
+  }
+
+  .burger {
+    display: block;
+  }
+
+  .menu.open {
+    display: flex;
+  }
+
+  .auth {
+    margin-left: auto;
+  }
+}
+
+@include sm-down {
+  .brand em {
+    display: none;
+  }
+
+  .top-in {
+    gap: 10px;
+    padding: 0 12px;
+  }
+
+  .tgl,
+  .burger {
+    padding: 5px 9px;
+    font-size: 12.5px;
+  }
+
+  .foot {
+    padding: 28px 0 48px;
+    margin-top: 48px;
   }
 }
 </style>

@@ -248,6 +248,8 @@ function formatTime(iso: string): string {
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .comments {
   margin-top: 64px;
   padding-top: 34px;
@@ -391,6 +393,29 @@ function formatTime(iso: string): string {
 
   &:hover {
     color: var(--danger);
+  }
+}
+
+@include sm-down {
+  .comments {
+    margin-top: 48px;
+    padding-top: 26px;
+  }
+
+  // 窄屏上「30 秒一条」的提示和按钮挤在一行会换行，干脆改成上下排、按钮占满
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+
+    .hint {
+      order: 2;
+      text-align: center;
+    }
+  }
+
+  .needlogin {
+    padding: 16px 16px 18px;
   }
 }
 </style>

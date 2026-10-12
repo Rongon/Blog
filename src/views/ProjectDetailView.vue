@@ -82,6 +82,8 @@ function splitBold(s: string): { text: string; bold: boolean }[] {
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .wrap {
   padding: 40px 24px 72px;
   max-width: var(--wide);
@@ -194,6 +196,32 @@ h1 {
 
   a {
     color: var(--link);
+  }
+}
+
+@include sm-down {
+  .wrap {
+    padding: 24px 16px 56px;
+  }
+
+  .head {
+    padding: 20px 0 26px;
+  }
+
+  h1 {
+    font-size: 26px;
+  }
+
+  .lede {
+    font-size: 16.5px;
+  }
+
+  .body {
+    padding-top: 30px;
+  }
+
+  .sec h2 {
+    font-size: 19px;
   }
 }
 </style>

@@ -109,6 +109,8 @@ const timeline = [
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .head {
   padding: 72px 0 48px;
   border-bottom: 1px solid var(--rule);
@@ -307,7 +309,7 @@ h1 {
   color: var(--faint);
 }
 
-@media (max-width: 1000px) {
+@include md-down {
   .cols {
     grid-template-columns: 1fr;
     gap: 40px;
@@ -316,6 +318,26 @@ h1 {
   .aside {
     position: static;
     order: 2;
+  }
+}
+
+@include sm-down {
+  .head {
+    padding: 40px 0 30px;
+  }
+
+  .lede {
+    font-size: 16.5px;
+  }
+
+  .skill-row {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .skill-label {
+    flex: none;
+    padding-top: 0;
   }
 }
 </style>

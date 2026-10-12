@@ -49,6 +49,8 @@ const featured = getFeaturedProjects(2)
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .hero {
   padding: 88px 0 64px;
   border-bottom: 1px solid var(--rule);
@@ -129,10 +131,16 @@ h1 {
   grid-template-columns: repeat(2, 1fr);
 }
 
-@media (max-width: 900px) {
+@include md-down {
   .cols-3,
   .cols-2 {
     grid-template-columns: 1fr;
+  }
+}
+
+@include sm-down {
+  .hero {
+    padding: 48px 0 36px;
   }
 }
 </style>

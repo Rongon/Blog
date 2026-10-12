@@ -88,6 +88,8 @@ async function onSubmit() {
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .auth {
   padding: 64px 24px 96px;
   display: flex;
@@ -128,5 +130,19 @@ async function onSubmit() {
   font-size: 13.5px;
   color: var(--muted);
   text-align: center;
+}
+
+@include sm-down {
+  .auth {
+    padding: 32px 16px 64px;
+  }
+
+  .card {
+    padding: 26px 20px 22px;
+
+    h1 {
+      font-size: 24px;
+    }
+  }
 }
 </style>

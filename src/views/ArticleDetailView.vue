@@ -133,6 +133,8 @@ onBeforeUnmount(() => observer?.disconnect())
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .detail {
   padding: 52px 0 72px;
 }
@@ -254,7 +256,7 @@ onBeforeUnmount(() => observer?.disconnect())
   }
 }
 
-@media (max-width: 1000px) {
+@include md-down {
   .cols {
     grid-template-columns: minmax(0, 1fr);
     gap: 0;
@@ -268,7 +270,15 @@ onBeforeUnmount(() => observer?.disconnect())
   }
 }
 
-@media (max-width: 640px) {
+@include sm-down {
+  .detail {
+    padding: 32px 0 48px;
+  }
+
+  .main h1 {
+    font-size: 25px;
+  }
+
   .adj {
     grid-template-columns: 1fr;
   }

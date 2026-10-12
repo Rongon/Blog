@@ -1,0 +1,137 @@
+/* =============================================================================
+   设计 token —— 视觉稿 v1（报纸 / 出版风）的定稿值
+   浅色是基准，深色靠 [data-theme='dark'] 覆盖同名变量。
+   所有颜色只在这里定义一次，组件里一律用 var()。
+   ============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   自定义西文字体：PT Serif（ParaType，SIL OFL 1.1，可免费商用）
+   只含拉丁子集：400 = 33116 字节、700 = 29588 字节，合计约 61 KB。
+   中文不加载任何 web font，走下面的系统宋体栈（0 字节）。
+   ----------------------------------------------------------------------------- */
+@font-face {
+  font-family: 'PT Serif';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/pt-serif-latin-400.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'PT Serif';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/pt-serif-latin-700.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+:root {
+  /* ---------- 字体角色 ---------- */
+
+  /* 正文 + 标题：西文 PT Serif 打头，中文交给系统宋体栈（不下载任何中文字体） */
+  --font-serif: 'PT Serif', 'Times New Roman', Georgia, 'Songti SC', 'Noto Serif CJK SC',
+    'Source Han Serif SC', 'Noto Serif SC', STSong, SimSun, serif;
+
+  /* 界面小字：导航、标签、元信息、按钮。系统无衬线，0 字节 */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Source Han Sans SC',
+    sans-serif;
+
+  /* 代码与数字 */
+  --font-mono: 'Cascadia Mono', Consolas, 'Courier New', Menlo, monospace;
+
+  /* ---------- 颜色（浅色 = Newsprint 原值 + 少量为 Web 适配的值） ---------- */
+  --bg: #f3f2ee; /* 暖纸白 */
+  --surface: #fbfaf7; /* 卡片面 */
+  --code-bg: #e7e5df;
+  --th-bg: #dadada;
+  --zebra: #e8e7e7;
+  --ink: #1f0909; /* 暖墨色 */
+  --muted: #6b635e;
+  --faint: #8a827c;
+  --rule: #d6d2c9;
+  --rule-soft: #e4e1d9;
+  --link: #065588;
+  --link-hover: #0a3a5c;
+  --data: #0d9488; /* 数据 / 成功语义（唯一的彩色） */
+  --danger: #b3261e;
+  --mark: #dce7f0;
+
+  /* ---------- 排版尺度 ---------- */
+  --measure: 720px; /* 正文栏宽：中文约 42 字/行 */
+  --wide: 1080px; /* 外框最大宽度 */
+  --body-size: 17px;
+  --leading: 1.9;
+  --radius: 2px; /* 报纸风：几乎不圆角 */
+
+  /* ---------- Element Plus 主题覆写（只留行为，不留它的样子） ---------- */
+  --el-color-primary: #065588;
+  --el-color-primary-light-3: #2f779f;
+  --el-color-primary-light-5: #5b98b8;
+  --el-color-primary-light-7: #8fb9d1;
+  --el-color-primary-light-8: #aecce0;
+  --el-color-primary-light-9: #dce7f0;
+  --el-color-primary-dark-2: #0a3a5c;
+  --el-border-radius-base: 2px;
+  --el-border-radius-small: 2px;
+  --el-font-family: var(--font-sans);
+  --el-text-color-primary: var(--ink);
+  --el-text-color-regular: var(--ink);
+  --el-border-color: var(--rule);
+  --el-border-color-light: var(--rule-soft);
+  --el-fill-color-blank: var(--surface);
+  --el-bg-color: var(--surface);
+}
+
+/* ---------- 深色 = 夜读（深灰蓝底 + 米白字，保住纸的质感，不做纯黑） ---------- */
+[data-theme='dark'] {
+  --bg: #16181c;
+  --surface: #1d2027;
+  --code-bg: #0f1216;
+  --th-bg: #22262e;
+  --zebra: #1d2027;
+  --ink: #e8e6e1;
+  --muted: #9a968f;
+  --faint: #7c7a76;
+  --rule: #2e323a;
+  --rule-soft: #262a31;
+  --link: #7fb4dd;
+  --link-hover: #a8ceee;
+  --data: #2dd4bf;
+  --danger: #f0736a;
+  --mark: #2b3a4a;
+
+  --el-color-primary: #7fb4dd;
+  --el-color-primary-light-3: #6a9dc1;
+  --el-color-primary-light-5: #5585a5;
+  --el-color-primary-light-7: #3f6a89;
+  --el-color-primary-light-8: #355a74;
+  --el-color-primary-light-9: #2b3a4a;
+  --el-color-primary-dark-2: #a8ceee;
+  --el-text-color-primary: #e8e6e1;
+  --el-text-color-regular: #e8e6e1;
+  --el-border-color: #2e323a;
+  --el-border-color-light: #262a31;
+  --el-fill-color-blank: #1d2027;
+  --el-bg-color: #1d2027;
+  --el-bg-color-overlay: #1d2027;
+  --el-text-color-placeholder: #7c7a76;
+}
+
+/* 尊重「减少动态效果」的系统偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

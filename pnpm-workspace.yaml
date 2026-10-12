@@ -1,0 +1,12 @@
+# pnpm 10+ 把「哪些依赖允许运行安装脚本」的配置放在这里（package.json 里的 pnpm 字段已不生效）。
+#
+# @parcel/watcher 是 chokidar 的可选依赖，只在 sass --watch 那类场景用到；
+# Vite 自己有文件监听，本项目用不到它，所以显式拒绝它的安装脚本。
+allowBuilds:
+  '@parcel/watcher': false
+
+# 关键：Windows 上 pnpm 用 junction 做链接，而 Node 的模块解析不会展开 junction，
+# 于是 vite 解析不到自己的依赖 rolldown，构建报 ERR_MODULE_NOT_FOUND。
+# hoisted = 扁平的、真实目录的 node_modules，彻底避开这个问题。
+# 注意 pnpm 11 在这个文件里只认 camelCase 键名（它自己生成的是 allowBuilds）。
+nodeLinker: hoisted

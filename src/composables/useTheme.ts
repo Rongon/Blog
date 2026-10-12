@@ -11,7 +11,9 @@ function readInitialTheme(): Theme {
   } catch {
     /* 隐私模式下 localStorage 可能不可用，忽略即可 */
   }
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  // 默认浅色：第一次访问的人都先看到「纸」的那一面（深色是可选功能，不是默认面孔）。
+  // 已手动切过的人会走上面的 localStorage 分支，不受影响。
+  return 'light'
 }
 
 const theme = ref<Theme>(readInitialTheme())

@@ -1,5 +1,11 @@
 <script setup lang="ts">
-// 阶段 0：只做首屏骨架。文章列表 / 项目预览会在模块 2 补上。
+import PostCard from '@/components/PostCard.vue'
+import ProjectCard from '@/components/ProjectCard.vue'
+import { getRecentPosts } from '@/data/posts'
+import { getFeaturedProjects } from '@/data/projects'
+
+const recent = getRecentPosts(3)
+const featured = getFeaturedProjects(2)
 </script>
 
 <template>
@@ -17,9 +23,28 @@
     </div>
   </section>
 
-  <section class="ph wrap">
-    <p class="kicker">待搭建</p>
-    <p>首页的「最近写的」与「项目预览」两块会在模块 2 补上。</p>
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>最近写的</h2>
+        <RouterLink to="/articles">全部文章 →</RouterLink>
+      </div>
+      <div class="grid cols-3">
+        <PostCard v-for="p in recent" :key="p.slug" :post="p" />
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>做过的项目</h2>
+        <RouterLink to="/projects">全部项目 →</RouterLink>
+      </div>
+      <div class="grid cols-2">
+        <ProjectCard v-for="p in featured" :key="p.slug" :project="p" />
+      </div>
+    </div>
   </section>
 </template>
 
@@ -83,8 +108,31 @@ h1 {
   }
 }
 
-.ph {
-  padding: 56px 24px;
-  color: var(--faint);
+.sec {
+  padding: 64px 0 0;
+
+  &:last-of-type {
+    padding-bottom: 40px;
+  }
+}
+
+.grid {
+  display: grid;
+  gap: 28px;
+}
+
+.cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 900px) {
+  .cols-3,
+  .cols-2 {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

@@ -12,6 +12,13 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
+
+  /* 锚点偏移：88 = 顶栏 65 + 空隙 23（router 的 scrollBehavior 里用的是同一个数字）。
+     两条路都要管，缺一不可：
+       ① 原生锚点跳转（浏览器自己滚）→ 认 scroll-padding-top
+       ② Vue Router 的 scrollBehavior（自己算坐标再 window.scrollTo）→ 认它返回的 top
+     哪个最后生效不确定，所以两边都得对齐到 88，才能保证怎么点都不会被顶栏挡住。 */
+  scroll-padding-top: 88px;
 }
 
 body {

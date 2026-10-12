@@ -1,0 +1,165 @@
+/**
+ * 自写的 Vite 插件：在构建时把 .md 编译成 JS 模块。
+ *
+ * 为什么自己写而不是用 unplugin-vue-markdown 之类现成的？
+ *   现成插件做的是「把 .md 变成一个 Vue 组件」，通常还配套一套文件路由，
+ *   对一个只要「HTML + 元数据」的博客来说概念太多。
+ *   自己写只需要三个概念：插件是对象、transform 是钩子、返回值换掉内容。
+ *
+ * 一个 .md 文件经过这里之后，会变成这样的 JS 模块：
+ *
+ *   export const meta = { title, summary, category, tags, date, readingMinutes, cover }
+ *   export const toc  = [{ id, text, level }, ...]
+ *   export const html = '<h2 id="...">...</h2>...'
+ *
+ * 关键点：markdown-it 和 Shiki 都只在 Node 里跑。
+ * 浏览器拿到的是已经编译好的 HTML 字符串，一个字的高亮库都不会下载。
+ */
+
+import MarkdownIt from 'markdown-it'
+import { createHighlighter, type Highlighter } from 'shiki'
+import type { Plugin } from 'vite'
+import type { PostFrontmatter, TocItem } from '../src/types/content'
+
+/** 高亮用的语言。没列在这里的会退化成纯文本，不会报错。 */
+const LANGS = [
+  'text', 'ts', 'js', 'vue', 'html', 'css', 'scss', 'json',
+  'bash', 'shell', 'md', 'yaml', 'nginx', 'diff',
+]
+
+let highlighterPromise: Promise<Highlighter> | null = null
+
+/**
+ * Shiki 的初始化是异步的，而插件工厂是同步调用的。
+ * 所以这里做一层惰性缓存：第一次 transform 时才真正创建，
+ * 之后所有文件共用同一个实例（创建一次要几百毫秒，别每个文件都建）。
+ */
+function getHighlighter(): Promise<Highlighter> {
+  if (!highlighterPromise) {
+    highlighterPromise = createHighlighter({
+      // 用双主题：同一段代码同时带上浅色和深色两套颜色，
+      // 具体显示哪一套交给 CSS 决定（见下面的 html 输出与 tokens.scss）。
+      themes: ['github-light', 'github-dark'],
+      langs: LANGS,
+    })
+  }
+  return highlighterPromise
+}
+
+/**
+ * 极简 frontmatter 解析：只认 `---` 之间的 `key: value`。
+ * 支持三种值：数组（`[a, b]`）、整数、字符串。
+ * 够用了——真需要复杂结构的时候再换 gray-matter 也不迟。
+ */
+function parseFrontmatter(raw: string): { data: Partial<PostFrontmatter>; body: string } {
+  const matched = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(raw)
+  if (!matched) return { data: {}, body: raw }
+
+  const data: Record<string, unknown> = {}
+  for (const line of matched[1].split(/\r?\n/)) {
+    const colon = line.indexOf(':')
+    if (colon < 0) continue
+    const key = line.slice(0, colon).trim()
+    const value = line.slice(colon + 1).trim()
+
+    if (value.startsWith('[') && value.endsWith(']')) {
+      data[key] = value
+        .slice(1, -1)
+        .split(',')
+        .map((s) => s.trim().replace(/^["']|["']$/g, ''))
+        .filter(Boolean)
+    } else if (/^-?\d+$/.test(value)) {
+      data[key] = Number(value)
+    } else {
+      data[key] = value.replace(/^["']|["']$/g, '')
+    }
+  }
+  return { data: data as Partial<PostFrontmatter>, body: raw.slice(matched[0].length) }
+}
+
+/** 把标题文字变成一个可用的锚点 id；重复时自动加 -2、-3 */
+function makeSlug(text: string, used: Set<string>): string {
+  const base =
+    text
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      // \p{L} 是「任意语言的字母」，所以中文标题也能保留下来
+      .replace(/[^\p{L}\p{N}-]/gu, '')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '') || 'section'
+
+  let id = base
+  let n = 2
+  while (used.has(id)) id = `${base}-${n++}`
+  used.add(id)
+  return id
+}
+
+export default function markdownPlugin(): Plugin {
+  return {
+    name: 'program2026:markdown',
+
+    // 必须抢在 Vite 核心插件之前处理，
+    // 否则 .md 会被当成 JS 去解析然后报错。
+    enforce: 'pre',
+
+    async transform(src, id) {
+      // id 上可能挂着查询串（比如 ?raw），只取文件路径部分
+      const [file] = id.split('?')
+      if (!file.endsWith('.md')) return
+
+      const { data, body } = parseFrontmatter(src)
+      const highlighter = await getHighlighter()
+
+      const toc: TocItem[] = []
+      const usedIds = new Set<string>()
+
+      const md = new MarkdownIt({
+        html: false, // 不允许正文里直接写 HTML，从源头上缩小 XSS 面
+        linkify: false,
+        typographer: false,
+        highlight(code, lang) {
+          const target = highlighter.getLoadedLanguages().includes(lang) ? lang : 'text'
+          return highlighter.codeToHtml(code, {
+            lang: target,
+            themes: { light: 'github-light', dark: 'github-dark' },
+            defaultColor: 'light',
+          })
+        },
+      })
+
+      // 给标题加 id，顺便把 toc 收集出来。
+      // 覆盖 renderer.rules 比事后用正则去改 HTML 可靠得多。
+      md.renderer.rules.heading_open = (tokens, idx, options, _env, self) => {
+        const token = tokens[idx]
+        const level = Number(token.tag.slice(1))
+        if (level === 2 || level === 3) {
+          const inline = tokens[idx + 1]
+          const text =
+            inline?.type === 'inline'
+              ? (inline.children ?? [])
+                  .filter((t) => t.type === 'text' || t.type === 'code_inline')
+                  .map((t) => t.content)
+                  .join('') || inline.content
+              : ''
+          const anchor = makeSlug(text, usedIds)
+          token.attrSet('id', anchor)
+          toc.push({ id: anchor, text, level })
+        }
+        return self.renderToken(tokens, idx, options)
+      }
+
+      const html = md.render(body)
+
+      // 交给 Vite 的是一段 JS 源码。JSON.stringify 保证字符串安全转义。
+      const code = [
+        `export const meta = ${JSON.stringify(data)}`,
+        `export const toc = ${JSON.stringify(toc)}`,
+        `export const html = ${JSON.stringify(html)}`,
+      ].join('\n')
+
+      return { code, map: null }
+    },
+  }
+}

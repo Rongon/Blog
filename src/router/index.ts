@@ -40,8 +40,20 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
-  scrollBehavior(_to, _from, savedPosition) {
-    return savedPosition ?? { top: 0 }
+  scrollBehavior(to, _from, savedPosition) {
+    // 站内锚点（文章目录）优先。这里必须显式处理，否则会被下面的 { top: 0 } 吃掉：
+    // 点目录其实是一次「同一路由、只换了 hash」的导航，Vue Router 会当成导航执行滚动，
+    // 于是页面被拉回顶部，看起来就像「点了没反应」。
+    if (to.hash) {
+      const id = decodeURIComponent(to.hash.slice(1))
+      // top: 88 是给顶栏留出的高度。
+      // 注意：这里必须显式给 top —— Vue Router 是自己算坐标再 window.scrollTo，
+      // 它**不吃** CSS 的 scroll-margin-top（那个只对原生锚点跳转和 scrollIntoView 生效）。
+      // 我们也确实不建议写 scroll-margin-top，免得以后有人以为它在起作用。
+      return { el: `#${CSS.escape(id)}`, top: 88, behavior: 'smooth' }
+    }
+    if (savedPosition) return savedPosition
+    return { top: 0 }
   },
 })
 

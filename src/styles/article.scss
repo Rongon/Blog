@@ -1,0 +1,135 @@
+/**
+ * 文章正文的排版样式。
+ *
+ * 这里全部是**全局选择器**（不是 scoped），因为正文是用 `v-html` 插进来的：
+ * 这些 DOM 节点由 markdown-it 在构建时生成，不带 Vue 的 scoped 属性，
+ * scoped 样式根本选不中它们。
+ *
+ * 所以这一份的责任边界很清楚：谁被 v-html 插进来，谁就归它管。
+ */
+
+.article-body {
+  font-size: var(--body-size);
+  line-height: var(--leading);
+
+  h2 {
+    font-size: 26px;
+    margin: 52px 0 18px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  h3 {
+    font-size: 20px;
+    margin: 36px 0 14px;
+  }
+
+  p {
+    margin: 0 0 22px;
+  }
+
+  ul,
+  ol {
+    margin: 0 0 22px;
+    padding-left: 1.4em;
+  }
+
+  li {
+    margin-bottom: 8px;
+  }
+
+  strong {
+    font-weight: 700;
+  }
+
+  a {
+    color: var(--link);
+    border-bottom: 1px solid currentColor;
+  }
+
+  // 行内代码
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: var(--radius);
+  }
+
+  // Shiki 输出的代码块
+  pre.shiki {
+    border: 1px solid var(--rule-soft);
+    border-left: 3px solid var(--link);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    overflow: auto;
+    font-size: 13.5px;
+    line-height: 1.7;
+    margin: 0 0 24px;
+    background: var(--code-bg) !important;
+
+    code {
+      background: none;
+      padding: 0;
+      font-size: 1em;
+    }
+  }
+
+  blockquote {
+    margin: 0 0 24px;
+    padding: 2px 0 2px 20px;
+    border-left: 5px solid var(--rule);
+    font-style: italic;
+    color: var(--muted);
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 26px;
+    font-size: 15px;
+  }
+
+  thead th {
+    background: var(--th-bg);
+    text-transform: uppercase;
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    letter-spacing: 0.06em;
+    text-align: left;
+  }
+
+  th,
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  tbody tr:nth-child(even) td {
+    background: var(--zebra);
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px solid var(--rule);
+    margin: 44px 0;
+  }
+}
+
+/**
+ * Shiki 的双主题。
+ *
+ * 编译时我们让它同时输出浅色和深色两套颜色：
+ *   浅色写在 style 的 color/background-color 上
+ *   深色写在 --shiki-dark / --shiki-dark-bg 两个自定义属性里
+ * 所以切深色只需要把后者「提」上来。这是 Shiki 官方推荐的用法。
+ */
+[data-theme='dark'] .shiki,
+[data-theme='dark'] .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+}

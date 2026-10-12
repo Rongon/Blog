@@ -8,6 +8,7 @@ import router from './router'
 
 import './styles/tokens.scss'
 import './styles/base.scss'
+import './styles/article.scss'
 
 const app = createApp(App)
 

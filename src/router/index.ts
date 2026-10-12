@@ -26,7 +26,7 @@ const routes: RouteRecordRaw[] = [
   },
   { path: '/projects', name: 'projects', component: ProjectListView, meta: { title: '项目' } },
   {
-    path: '/projects/:id',
+    path: '/projects/:slug',
     name: 'project-detail',
     component: ProjectDetailView,
     meta: { title: '项目详情' },

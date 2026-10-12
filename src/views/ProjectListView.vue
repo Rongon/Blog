@@ -1,7 +1,174 @@
 <script setup lang="ts">
-import PlaceholderPage from '@/components/PlaceholderPage.vue'
+import { projects } from '@/data/projects'
 </script>
 
 <template>
-  <PlaceholderPage title="项目" note="项目列表与项目详情 —— 模块 5。" />
+  <section class="head">
+    <div class="wrap">
+      <div class="kicker">项目</div>
+      <h1>做过的三件事</h1>
+      <p class="lede">
+        一个是正在做的站点，一个是工作里做的低代码平台，一个是自己从零写完的后台系统。下面写的是我具体负责了什么、当时怎么想的。
+      </p>
+    </div>
+  </section>
+
+  <section class="list">
+    <div class="wrap">
+      <article v-for="p in projects" :key="p.slug" class="prow">
+        <div class="thumb">
+          <RouterLink v-if="p.to" :to="p.to" tabindex="-1" aria-hidden="true">
+            <img :src="p.thumb" :alt="p.name" />
+          </RouterLink>
+          <img v-else :src="p.thumb" :alt="p.name" />
+        </div>
+
+        <div class="body">
+          <div class="kicker">{{ p.role }} · {{ p.period }}</div>
+          <h2>
+            <RouterLink v-if="p.to" :to="p.to">{{ p.name }}</RouterLink>
+            <template v-else>{{ p.name }}</template>
+          </h2>
+          <p class="tl">{{ p.tagline }}</p>
+          <p class="sum">{{ p.summary }}</p>
+
+          <ul class="hi">
+            <li v-for="h in p.highlights" :key="h">{{ h }}</li>
+          </ul>
+
+          <div class="foot">
+            <div class="stack ui">
+              <span v-for="s in p.stack" :key="s">{{ s }}</span>
+            </div>
+            <RouterLink v-if="p.to" class="more ui" :to="p.to">看细节 →</RouterLink>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
 </template>
+
+<style scoped lang="scss">
+.head {
+  padding: 72px 0 48px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.kicker {
+  margin-bottom: 18px;
+}
+
+h1 {
+  font-size: clamp(30px, 4vw, 42px);
+  letter-spacing: -0.02em;
+}
+
+.lede {
+  margin: 20px 0 0;
+  max-width: 36em;
+  color: var(--muted);
+  font-size: 17.5px;
+  line-height: 1.85;
+}
+
+.list {
+  padding: 8px 0 56px;
+}
+
+.prow {
+  display: grid;
+  grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
+  gap: 40px;
+  padding: 44px 0;
+  border-bottom: 1px solid var(--rule-soft);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.thumb {
+  img {
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--rule-soft);
+  }
+}
+
+h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+
+  a {
+    color: var(--ink);
+
+    &:hover {
+      color: var(--link);
+    }
+  }
+}
+
+.tl {
+  margin: 0 0 12px;
+  color: var(--ink);
+  font-size: 16.5px;
+  line-height: 1.8;
+}
+
+.sum {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 15.5px;
+  line-height: 1.85;
+}
+
+.hi {
+  margin: 0 0 20px;
+  padding-left: 1.15em;
+  color: var(--muted);
+  font-size: 14.5px;
+  line-height: 1.75;
+
+  li {
+    margin-bottom: 6px;
+  }
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.stack {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12.5px;
+
+  span {
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 1px 9px;
+    color: var(--faint);
+  }
+}
+
+.more {
+  margin-left: auto;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .prow {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .more {
+    margin-left: 0;
+  }
+}
+</style>

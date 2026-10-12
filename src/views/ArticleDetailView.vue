@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import PlaceholderPage from '@/components/PlaceholderPage.vue'
+import CommentSection from '@/components/CommentSection.vue'
 import { getAdjacentPosts, getPostBySlug } from '@/data/posts'
 
 const route = useRoute()
@@ -104,6 +105,8 @@ onBeforeUnmount(() => observer?.disconnect())
           <p class="back">
             <RouterLink to="/articles">← 回到文章列表</RouterLink>
           </p>
+
+          <CommentSection :post-slug="slug" />
         </article>
 
         <aside v-if="detail.toc.length" class="toc">

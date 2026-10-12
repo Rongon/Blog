@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { ElMessage } from 'element-plus'
 import { useTheme } from '@/composables/useTheme'
+import { useAuthStore } from '@/stores/auth'
 
 const { theme, toggleTheme } = useTheme()
+const auth = useAuthStore()
 
 const nav = [
   { to: '/', label: '首页' },
@@ -9,6 +12,11 @@ const nav = [
   { to: '/articles', label: '文章' },
   { to: '/about', label: '关于' },
 ]
+
+async function onSignOut() {
+  await auth.signOut()
+  ElMessage.success('已退出登录')
+}
 </script>
 
 <template>
@@ -21,6 +29,14 @@ const nav = [
           {{ item.label }}
         </RouterLink>
       </nav>
+
+      <div class="auth">
+        <template v-if="auth.isLoggedIn">
+          <span class="who">{{ auth.displayName }}</span>
+          <button class="out" type="button" @click="onSignOut">退出</button>
+        </template>
+        <RouterLink v-else class="in" to="/login">登录</RouterLink>
+      </div>
 
       <button class="tgl" type="button" @click="toggleTheme">
         {{ theme === 'dark' ? '浅色模式' : '深色模式' }}
@@ -95,6 +111,46 @@ const nav = [
     &.router-link-exact-active {
       color: var(--ink);
       border-bottom: 1px solid var(--ink);
+    }
+  }
+}
+
+.auth {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  margin-left: 4px;
+
+  .who {
+    color: var(--muted);
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .in {
+    color: var(--muted);
+
+    &:hover {
+      color: var(--ink);
+      border-bottom-color: transparent;
+    }
+  }
+
+  .out {
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    color: var(--faint);
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--danger);
     }
   }
 }

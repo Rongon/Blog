@@ -1,5 +1,14 @@
 /// <reference types="vite/client" />
 
+/**
+ * 环境变量的类型。Vite 只把 `VITE_` 开头的变量暴露给客户端代码，
+ * 所以这里声明两个之后，`import.meta.env.VITE_SUPABASE_URL` 就有类型了。
+ */
+interface ImportMetaEnv {
+  readonly VITE_SUPABASE_URL: string
+  readonly VITE_SUPABASE_ANON_KEY: string
+}
+
 declare module '*.vue' {
   import type { DefineComponent } from 'vue'
   const component: DefineComponent<Record<string, unknown>, Record<string, unknown>, unknown>

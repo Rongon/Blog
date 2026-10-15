@@ -28,6 +28,29 @@
     margin: 0 0 22px;
   }
 
+  /* 正文插图。
+     注意这里【故意】没有做的事（都是阶段 3 的优化项）：
+       · 没有给图片写 width / height 属性 —— 浏览器不知道比例，加载完会把下面内容挤下去（CLS）
+       · 没有 loading="lazy" —— 文章里十几张大图全在首屏就开始下载
+       · 没有 <picture> + srcset —— 手机和 4K 屏下的是同一张 3000px 的图
+       · 没有 WebP 兜底 */
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 10px 0 12px;
+    border: 1px solid var(--rule-soft);
+  }
+
+  /* 图片下面的说明文字：markdown 里写成单独一行的斜体 */
+  p > em:only-child {
+    display: block;
+    margin-top: -6px;
+    font-size: 14px;
+    color: var(--faint);
+    font-style: normal;
+  }
+
   ul,
   ol {
     margin: 0 0 22px;

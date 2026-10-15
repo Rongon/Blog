@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import type { PostMeta } from '@/data/posts'
-import { asset } from '@/lib/asset'
+import ResponsiveImage from '@/components/ResponsiveImage.vue'
 
-defineProps<{ post: PostMeta }>()
+withDefaults(defineProps<{ post: PostMeta; sizes?: string }>(), {
+  // 默认按首页「最近写的」那张网格算：两列、列间距 28
+  sizes: '(max-width: 899px) calc(100vw - 48px), (max-width: 1128px) calc((100vw - 76px) / 2), 502px',
+})
 </script>
 
 <template>
   <article class="card">
     <RouterLink class="cover" :to="`/articles/${post.slug}`" tabindex="-1" aria-hidden="true">
-      <!-- 优化前：原图大 JPG，没有 WebP、没有 srcset、没有懒加载 -->
-      <img :src="asset(post.cover)" :alt="post.title" />
+      <ResponsiveImage :src="post.cover" :alt="post.title" :sizes="sizes" />
     </RouterLink>
 
     <div class="body">

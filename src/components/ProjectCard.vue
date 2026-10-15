@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import type { ProjectMeta } from '@/data/projects'
-import { asset } from '@/lib/asset'
+import ResponsiveImage from '@/components/ResponsiveImage.vue'
 
-defineProps<{ project: ProjectMeta }>()
+withDefaults(defineProps<{ project: ProjectMeta; sizes?: string }>(), {
+  // 默认按首页「做过的项目」那张网格算：三列、列间距 28
+  sizes: '(max-width: 899px) calc(100vw - 48px), (max-width: 1128px) calc((100vw - 104px) / 3), 325px',
+})
 </script>
 
 <template>
   <article class="pcard">
     <RouterLink v-if="project.to" class="thumb" :to="project.to" tabindex="-1" aria-hidden="true">
-      <img :src="asset(project.thumb)" :alt="project.name" />
+      <ResponsiveImage :src="project.thumb" :alt="project.name" :sizes="sizes" />
     </RouterLink>
     <div v-else class="thumb" aria-hidden="true">
-      <img :src="asset(project.thumb)" :alt="project.name" />
+      <ResponsiveImage :src="project.thumb" :alt="project.name" :sizes="sizes" />
     </div>
 
     <div class="body">

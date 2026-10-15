@@ -18,6 +18,7 @@
 
 import MarkdownIt from 'markdown-it'
 import { createHighlighter, type Highlighter } from 'shiki'
+import { readFileSync } from 'node:fs'
 import type { Plugin } from 'vite'
 import type { PostFrontmatter, TocItem } from '../src/types/content'
 
@@ -34,6 +35,38 @@ let highlighterPromise: Promise<Highlighter> | null = null
  * 由下面的 configResolved 钩子写入，用来给正文里的图片补上前缀。
  */
 let base = '/'
+
+/** 给站点内的绝对路径补上 base。/images/a.webp → /Program2026/images/a.webp */
+function withBase(path: string): string {
+  if (!path.startsWith('/') || path.startsWith('//')) return path
+  return `${base.replace(/\/+$/, '')}${path}`
+}
+
+interface ImageEntry {
+  w: number
+  h: number
+  variants: number[]
+}
+
+/**
+ * 图片清单：哪张图有哪些宽度档位。由 scripts/optimize-images.mjs 生成。
+ *
+ * 读不到就退化成空对象——第一次 clone 下来还没跑过图片脚本时不该让构建挂掉，
+ * 大不了不输出 srcset。
+ */
+function loadImageManifest(): Record<string, ImageEntry> {
+  try {
+    const url = new URL('../src/data/image-manifest.json', import.meta.url)
+    return JSON.parse(readFileSync(url, 'utf8')) as Record<string, ImageEntry>
+  } catch {
+    return {}
+  }
+}
+
+const IMAGE_MANIFEST = loadImageManifest()
+
+/** 正文图片都在 .article-body 里，而那个容器的最大宽度是 720px */
+const ARTICLE_IMAGE_SIZES = '(max-width: 780px) calc(100vw - 48px), 720px'
 
 /**
  * Shiki 的初始化是异步的，而插件工厂是同步调用的。
@@ -165,8 +198,9 @@ export default function markdownPlugin(): Plugin {
         return self.renderToken(tokens, idx, options)
       }
 
-      // 正文里的图片：把以 `/` 开头的绝对路径补上 base 前缀。
-      // 只改 src，alt / title 之类的原样不动。
+      // 正文里的图片，做两件事：
+      //   1. 补 base 前缀（GitHub Pages 是子路径部署，写死的 /images/x.webp 到线上会 404）
+      //   2. 如果这张图在清单里，补上 srcset + sizes（也就是「响应式图片」这项优化）
       const renderImage =
         md.renderer.rules.image ??
         ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options))
@@ -174,12 +208,24 @@ export default function markdownPlugin(): Plugin {
       md.renderer.rules.image = (tokens, idx, options, env, self) => {
         const token = tokens[idx]
         const srcIndex = token.attrIndex('src')
+
         if (srcIndex >= 0 && token.attrs) {
-          const src = token.attrs[srcIndex][1]
-          if (src.startsWith('/') && !src.startsWith('//')) {
-            token.attrs[srcIndex][1] = `${base.replace(/\/+$/, '')}${src}`
+          const raw = token.attrs[srcIndex][1]
+          const entry = IMAGE_MANIFEST[raw]
+
+          if (entry) {
+            const candidates = entry.variants.map(
+              (w) => `${withBase(raw.replace(/\.webp$/i, `-${w}.webp`))} ${w}w`,
+            )
+            // 全尺寸那张也算一个候选，供超宽屏或高 DPR 使用
+            candidates.push(`${withBase(raw)} ${entry.w}w`)
+            token.attrSet('srcset', candidates.join(', '))
+            token.attrSet('sizes', ARTICLE_IMAGE_SIZES)
           }
+
+          token.attrs[srcIndex][1] = withBase(raw)
         }
+
         return renderImage(tokens, idx, options, env, self)
       }
 

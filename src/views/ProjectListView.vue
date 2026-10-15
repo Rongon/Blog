@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import ResponsiveImage from '@/components/ResponsiveImage.vue'
 import { projects } from '@/data/projects'
+
+// 这里是行式布局：左边缩略图固定 380px，右边正文；窄屏塌成单列
+const THUMB_SIZES = '(max-width: 899px) calc(100vw - 48px), 380px'
 </script>
 
 <template>
@@ -18,9 +22,9 @@ import { projects } from '@/data/projects'
       <article v-for="p in projects" :key="p.slug" class="prow">
         <div class="thumb">
           <RouterLink v-if="p.to" :to="p.to" tabindex="-1" aria-hidden="true">
-            <img :src="p.thumb" :alt="p.name" />
+            <ResponsiveImage :src="p.thumb" :alt="p.name" :sizes="THUMB_SIZES" />
           </RouterLink>
-          <img v-else :src="p.thumb" :alt="p.name" />
+          <ResponsiveImage v-else :src="p.thumb" :alt="p.name" :sizes="THUMB_SIZES" />
         </div>
 
         <div class="body">

@@ -1,19 +1,27 @@
 <script setup lang="ts">
 import PostCard from '@/components/PostCard.vue'
 import ProjectCard from '@/components/ProjectCard.vue'
+import ResponsiveImage from '@/components/ResponsiveImage.vue'
 import { getRecentPosts } from '@/data/posts'
 import { getFeaturedProjects } from '@/data/projects'
-import { asset } from '@/lib/asset'
+
+/**
+ * 告诉浏览器这些图在不同断点下会占多宽。
+ * srcset 能不能挑对档位全靠它——写错就等于没优化，甚至更糟。
+ * 这几个值是从下面的 CSS 反推出来的，改布局时记得回头看这里。
+ */
+// 题图在 .wrap 里：最大宽 1080，左右各 24 内边距
+const BANNER_SIZES = '(max-width: 1128px) calc(100vw - 48px), 1032px'
+// 照片墙是 .cols-3：三列、列间距 28，所以是三列之间减掉两个 28
+const WALL_SIZES =
+  '(max-width: 899px) calc(100vw - 48px), (max-width: 1128px) calc((100vw - 104px) / 3), 325px'
 
 const recent = getRecentPosts(8)
 const featured = getFeaturedProjects(3)
 
 /**
  * 首页的照片墙。
- *
- * 注意这里直接引的就是原始尺寸的大图（3000px、单张一到三兆）——
- * 首页并没有生成缩略图。这是「优化前」的样子，也是首页会慢的主要原因。
- * 阶段 3 会加上缩略图 / srcset / 懒加载 / 宽高，然后重新测一遍。
+ * 引用的是原始尺寸的大图——优化前首页并没有生成缩略图，这也是首页会慢的主要原因。
  */
 const photos = [
   { src: '/images/photos/coast-02.webp', alt: '浪与沙滩' },
@@ -41,13 +49,17 @@ const photos = [
         <RouterLink class="btn ghost" to="/articles">读文章</RouterLink>
       </div>
 
-      <!-- 首屏题图。它是首页的 LCP 元素，现在是这样的：
-           没有 width/height（图没下来之前这块高度是 0，图一到位把下面全部推下去 = CLS）、
-           没有 preload / fetchpriority（和另外 18 张图排在同一个队里）、
-           没有 srcset（手机也去下这张 3000px 的图）。
-           三项都是阶段 3 的优化项，现在故意不做。 -->
+      <!-- 首屏题图（首页的 LCP 元素）。
+           已经有 srcset（手机不会再下这张 3000px 的图）；
+           还没有 width/height（图没下来之前这块高度是 0，图一到位把下面全部推下去 = CLS）、
+           也还没有 preload / fetchpriority（和另外 18 张图排在同一个队里）。
+           剩下两项是后面的优化项，现在故意不做。 -->
       <figure class="banner">
-        <img :src="asset('/images/photos/coast-10.webp')" alt="从高处看下去的海岸线" />
+        <ResponsiveImage
+          src="/images/photos/coast-10.webp"
+          alt="从高处看下去的海岸线"
+          :sizes="BANNER_SIZES"
+        />
         <figcaption class="ui">题图 · 海岸线，下午四点</figcaption>
       </figure>
     </div>
@@ -86,7 +98,13 @@ const photos = [
         <RouterLink to="/articles/coastline">那篇图集 →</RouterLink>
       </div>
       <div class="grid cols-3 photos">
-        <img v-for="ph in photos" :key="ph.src" :src="asset(ph.src)" :alt="ph.alt" />
+        <ResponsiveImage
+          v-for="ph in photos"
+          :key="ph.src"
+          :src="ph.src"
+          :alt="ph.alt"
+          :sizes="WALL_SIZES"
+        />
       </div>
     </div>
   </section>

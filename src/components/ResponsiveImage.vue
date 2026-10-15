@@ -26,6 +26,14 @@ const props = defineProps<{
   alt: string
   /** 这张图在各个断点下会占多宽。写错就等于没优化，甚至更糟 */
   sizes: string
+  /**
+   * 是否属于首屏。
+   *
+   * 默认 false = 懒加载：浏览器滚动到它附近才开始下载。
+   * 首屏那张图必须传 true，否则会反过来拖慢 LCP——因为它要等布局算完才开始下载。
+   * 传 true 时还会加 fetchpriority="high"，让它在并发队列里排前面。
+   */
+  eager?: boolean
 }>()
 
 interface ImageEntry {
@@ -56,5 +64,22 @@ const src = computed(() => asset(props.src))
 </script>
 
 <template>
-  <img :src="src" :srcset="srcset" :sizes="srcset ? sizes : undefined" :alt="alt" />
+  <!--
+    loading：
+      · eager  → 立刻下载，并让它在并发队列里排前面（首屏图必须这样）
+      · lazy   → 浏览器滚到它附近（Chrome 大约是提前 1250px）才开始下载
+    注意 lazy 不等于「永远不下载在视口里的图」——浏览器不会推迟已经在视口内的图片，
+    所以给卡片统一加 lazy 是安全的，不会打坏首屏。
+
+    decoding="async"：解码放到另一个线程，不阻塞主线程渲染。
+  -->
+  <img
+    :src="src"
+    :srcset="srcset"
+    :sizes="srcset ? sizes : undefined"
+    :alt="alt"
+    :loading="eager ? 'eager' : 'lazy'"
+    :fetchpriority="eager ? 'high' : undefined"
+    decoding="async"
+  />
 </template>

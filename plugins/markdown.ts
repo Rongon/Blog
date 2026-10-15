@@ -226,6 +226,11 @@ export default function markdownPlugin(): Plugin {
           token.attrs[srcIndex][1] = withBase(raw)
         }
 
+        // 正文里的图一律懒加载 + 异步解码。
+        // 浏览器不会推迟「已经在视口里」的图，所以文章第一张图不会被拖慢。
+        token.attrSet('loading', 'lazy')
+        token.attrSet('decoding', 'async')
+
         return renderImage(tokens, idx, options, env, self)
       }
 

@@ -59,6 +59,7 @@ const photos = [
           src="/images/photos/coast-10.webp"
           alt="从高处看下去的海岸线"
           :sizes="BANNER_SIZES"
+          eager
         />
         <figcaption class="ui">题图 · 海岸线，下午四点</figcaption>
       </figure>

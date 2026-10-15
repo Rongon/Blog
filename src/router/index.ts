@@ -1,40 +1,43 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 
 /**
- * 阶段 1（naive 基线版）刻意使用**静态导入**，不做路由级懒加载。
- * 结果是所有页面的代码都打进同一个 bundle —— 这是后面「路由级代码分割」
- * 这一项优化的对照起点，别顺手改成 () => import()。
+ * 【优化项 5 · 路由级代码分割】
+ *
+ * 这里原来是一排静态 `import HomeView from '@/views/HomeView.vue'`。
+ * 静态导入的意思是「这个模块属于入口包」，于是所有页面的代码都被打进同一个
+ * bundle —— 用户只打开首页，却要下载登录页、注册页、404 页的全部代码。
+ *
+ * 改成 `() => import(...)` 之后就变成动态导入：
+ *   · 打包器看到动态 import，会为每个页面单独切出一个 chunk
+ *   · 这些 chunk 在路由被访问时才下载（Vue Router 会 await 这个函数）
+ *   · 副作用是首屏少下载一批代码，但切页面时会多一次网络请求
+ *
+ * 为什么不全都拆：首页是入口，拆出去只会多一次往返，所以它仍然是静态导入。
  */
+
+// 唯一保留的静态导入：首页必须在入口包里，否则打开站点要多等一个请求
 import HomeView from '@/views/HomeView.vue'
-import ArticleListView from '@/views/ArticleListView.vue'
-import ArticleDetailView from '@/views/ArticleDetailView.vue'
-import ProjectListView from '@/views/ProjectListView.vue'
-import ProjectDetailView from '@/views/ProjectDetailView.vue'
-import AboutView from '@/views/AboutView.vue'
-import LoginView from '@/views/LoginView.vue'
-import RegisterView from '@/views/RegisterView.vue'
-import NotFoundView from '@/views/NotFoundView.vue'
 
 const routes: RouteRecordRaw[] = [
   { path: '/', name: 'home', component: HomeView, meta: { title: '首页' } },
-  { path: '/articles', name: 'articles', component: ArticleListView, meta: { title: '文章' } },
+  { path: '/articles', name: 'articles', component: () => import('@/views/ArticleListView.vue'), meta: { title: '文章' } },
   {
     path: '/articles/:slug',
     name: 'article-detail',
-    component: ArticleDetailView,
+    component: () => import('@/views/ArticleDetailView.vue'),
     meta: { title: '文章详情' },
   },
-  { path: '/projects', name: 'projects', component: ProjectListView, meta: { title: '项目' } },
+  { path: '/projects', name: 'projects', component: () => import('@/views/ProjectListView.vue'), meta: { title: '项目' } },
   {
     path: '/projects/:slug',
     name: 'project-detail',
-    component: ProjectDetailView,
+    component: () => import('@/views/ProjectDetailView.vue'),
     meta: { title: '项目详情' },
   },
-  { path: '/about', name: 'about', component: AboutView, meta: { title: '关于' } },
-  { path: '/login', name: 'login', component: LoginView, meta: { title: '登录' } },
-  { path: '/register', name: 'register', component: RegisterView, meta: { title: '注册' } },
-  { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView, meta: { title: '404' } },
+  { path: '/about', name: 'about', component: () => import('@/views/AboutView.vue'), meta: { title: '关于' } },
+  { path: '/login', name: 'login', component: () => import('@/views/LoginView.vue'), meta: { title: '登录' } },
+  { path: '/register', name: 'register', component: () => import('@/views/RegisterView.vue'), meta: { title: '注册' } },
+  { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/NotFoundView.vue'), meta: { title: '404' } },
 ]
 
 const router = createRouter({

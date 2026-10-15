@@ -5,7 +5,7 @@ category: 技术
 tags: [设计, CSS]
 date: 2025-12-22
 readingMinutes: 5
-cover: /images/covers/night-sky.jpg
+cover: /images/covers/night-sky.webp
 ---
 
 「深色模式」最简单的实现是 `filter: invert(1)`，或者把手写死的颜色挨个换成反色。这两种做法出来的东西都很难看。

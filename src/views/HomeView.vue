@@ -16,15 +16,15 @@ const featured = getFeaturedProjects(3)
  * 阶段 3 会加上缩略图 / srcset / 懒加载 / 宽高，然后重新测一遍。
  */
 const photos = [
-  { src: '/images/photos/coast-02.jpg', alt: '浪与沙滩' },
-  { src: '/images/photos/coast-03.jpg', alt: '正午的海面' },
-  { src: '/images/photos/coast-04.jpg', alt: '回程路上' },
-  { src: '/images/photos/coast-05.jpg', alt: '浪打礁石' },
-  { src: '/images/photos/coast-06.jpg', alt: '远处的海岸线' },
-  { src: '/images/photos/coast-07.jpg', alt: '清早的海雾' },
-  { src: '/images/photos/coast-08.jpg', alt: '海边的树' },
-  { src: '/images/photos/coast-09.jpg', alt: '拍岸的浪' },
-  { src: '/images/photos/coast-11.jpg', alt: '礁石与浪花' },
+  { src: '/images/photos/coast-02.webp', alt: '浪与沙滩' },
+  { src: '/images/photos/coast-03.webp', alt: '正午的海面' },
+  { src: '/images/photos/coast-04.webp', alt: '回程路上' },
+  { src: '/images/photos/coast-05.webp', alt: '浪打礁石' },
+  { src: '/images/photos/coast-06.webp', alt: '远处的海岸线' },
+  { src: '/images/photos/coast-07.webp', alt: '清早的海雾' },
+  { src: '/images/photos/coast-08.webp', alt: '海边的树' },
+  { src: '/images/photos/coast-09.webp', alt: '拍岸的浪' },
+  { src: '/images/photos/coast-11.webp', alt: '礁石与浪花' },
 ]
 </script>
 
@@ -47,7 +47,7 @@ const photos = [
            没有 srcset（手机也去下这张 3000px 的图）。
            三项都是阶段 3 的优化项，现在故意不做。 -->
       <figure class="banner">
-        <img :src="asset('/images/photos/coast-10.jpg')" alt="从高处看下去的海岸线" />
+        <img :src="asset('/images/photos/coast-10.webp')" alt="从高处看下去的海岸线" />
         <figcaption class="ui">题图 · 海岸线，下午四点</figcaption>
       </figure>
     </div>

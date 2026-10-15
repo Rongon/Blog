@@ -50,7 +50,7 @@ export const projects: ProjectMeta[] = [
     role: '独立开发',
     period: '2026.02 - 至今',
     stack: ['Vue 3', 'TypeScript', 'Vite', 'Pinia', 'Markdown-it', 'Shiki'],
-    thumb: '/images/covers/forest-sun.jpg',
+    thumb: '/images/covers/forest-sun.webp',
     to: '/projects/program2026',
     highlights: [
       '构建时把 Markdown 编译成 HTML，客户端不下载任何解析器',
@@ -104,7 +104,7 @@ export const projects: ProjectMeta[] = [
     role: '前端开发',
     period: '2024 - 2026',
     stack: ['React', 'TypeScript', 'amis'],
-    thumb: '/images/covers/forest-fog.jpg',
+    thumb: '/images/covers/forest-fog.webp',
     to: '/projects/lowcode-platform',
     highlights: [
       '用 Schema 描述页面结构，配置与渲染分离',
@@ -143,7 +143,7 @@ export const projects: ProjectMeta[] = [
     role: '独立开发',
     period: '2024.02 - 2024.03',
     stack: ['Vue 3', 'Element Plus', 'Pinia', 'ECharts'],
-    thumb: '/images/covers/night-sky.jpg',
+    thumb: '/images/covers/night-sky.webp',
     to: '/projects/goods-admin',
     highlights: [
       '用全局自定义指令做按钮级权限，减少模板里的判断',

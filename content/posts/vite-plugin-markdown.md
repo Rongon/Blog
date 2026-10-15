@@ -5,7 +5,7 @@ category: 技术
 tags: [Vite, Markdown]
 date: 2026-01-18
 readingMinutes: 7
-cover: /images/covers/forest-sun.jpg
+cover: /images/covers/forest-sun.webp
 ---
 
 这个站点里的每一篇文章，都是一个躺在仓库里的 `.md` 文件。它们不是被浏览器解析的，而是在 `pnpm build` 的时候就被编译成了 HTML。

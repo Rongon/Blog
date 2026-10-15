@@ -5,14 +5,14 @@ category: 技术
 tags: [性能优化, 工程实践]
 date: 2026-03-18
 readingMinutes: 7
-cover: /images/photos/coast-12.jpg
+cover: /images/photos/coast-12.webp
 ---
 
 第一次跑 Lighthouse 拿到 62 分，改了两行代码再跑，74 分。又改回去，81 分。那时候我以为是工具坏了。
 
 后来才知道：**Lighthouse 的分数本身有方差**。同一份代码连跑十次，性能分可以差出 20 分。
 
-![从高处看的海岸线](/images/photos/coast-02.jpg)
+![从高处看的海岸线](/images/photos/coast-02.webp)
 
 *第一次意识到「数据不可复现」的时候，正好在海边。*
 
@@ -40,7 +40,7 @@ for i in 1 2 3 4 5; do
 done
 ```
 
-![海雾](/images/photos/coast-03.jpg)
+![海雾](/images/photos/coast-03.webp)
 
 *测完那一晚的海。*
 

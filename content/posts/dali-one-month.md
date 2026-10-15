@@ -5,7 +5,7 @@ category: 旅行
 tags: [摄影]
 date: 2026-03-02
 readingMinutes: 5
-cover: /images/photos/coast-14.jpg
+cover: /images/photos/coast-14.webp
 ---
 
 去之前以为大理是「慢生活」，住了一个月才知道，慢的是节奏，不是人。
@@ -14,7 +14,7 @@ cover: /images/photos/coast-14.jpg
 
 网上说环海一圈一百多公里，骑车一天。实际上如果边走边停，两天都紧。我最后分成了三次：一次走东岸，两次走西岸。
 
-![清晨的海边](/images/photos/coast-07.jpg)
+![清晨的海边](/images/photos/coast-07.webp)
 
 *早上七点的洱海，风还没起来，水面几乎是平的。*
 
@@ -24,7 +24,7 @@ cover: /images/photos/coast-14.jpg
 
 洱海是平的，怎么拍都不会太差。苍山不一样：它要么被云盖住，要么被正午的光压成一片灰。
 
-![拍岸的浪](/images/photos/coast-09.jpg)
+![拍岸的浪](/images/photos/coast-09.webp)
 
 *等了两小时，云开了一条缝。*
 
@@ -34,7 +34,7 @@ cover: /images/photos/coast-14.jpg
 
 前两周住在古城里，晚上吵，白天游客多。后两周搬到了才村，走路五分钟到海边，房租还便宜。
 
-![礁石与浪花](/images/photos/coast-11.jpg)
+![礁石与浪花](/images/photos/coast-11.webp)
 
 ## 一点感受
 

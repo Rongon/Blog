@@ -5,7 +5,7 @@ category: 技术
 tags: [工程实践, Vue]
 date: 2026-01-27
 readingMinutes: 6
-cover: /images/covers/forest-fog.jpg
+cover: /images/covers/forest-fog.webp
 ---
 
 先说场景。评论区的常规写法是「悲观更新」：点发表 → 按钮转圈 → 等接口返回 → 成功了再把这条评论插进列表。

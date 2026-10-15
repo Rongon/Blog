@@ -5,7 +5,7 @@ category: 旅行
 tags: [摄影]
 date: 2026-01-05
 readingMinutes: 4
-cover: /images/covers/lake.jpg
+cover: /images/covers/lake.webp
 ---
 
 出发那天是阴天，海是灰的。本来以为白跑一趟，结果走到下午四点多，云开了一条缝，光正好打在礁石上。
@@ -16,59 +16,59 @@ cover: /images/covers/lake.jpg
 
 六点多到的海边，雾还没散。远处那几块礁石只能看出个轮廓。
 
-![清早的海雾](/images/photos/coast-07.jpg)
+![清早的海雾](/images/photos/coast-07.webp)
 
 *六点四十，雾没散，礁石只剩轮廓。*
 
 再往前走了一段，浪开始大起来。快门压到 1/500 才勉强抓住水花。
 
-![拍岸的浪](/images/photos/coast-09.jpg)
+![拍岸的浪](/images/photos/coast-09.webp)
 
 *快门 1/500，光圈 f/8。*
 
-![礁石与浪花](/images/photos/coast-11.jpg)
+![礁石与浪花](/images/photos/coast-11.webp)
 
 ## 中午，光太硬
 
 中午的光是最难拍的：天顶光把海面打成一片白，礁石的纹理全丢了。这段时间基本没出片，干脆坐着看了会儿海。
 
-![正午的海面](/images/photos/coast-03.jpg)
+![正午的海面](/images/photos/coast-03.webp)
 
 *正午，海面反光过曝，这张纯粹是记录。*
 
 倒是岸边那条小路有点意思，从上面看下去像一道被拉长的线。
 
-![岸边的路](/images/photos/coast-10.jpg)
+![岸边的路](/images/photos/coast-10.webp)
 
 ## 下午四点的光
 
 四点多，云开了一条缝。这是这一天唯一值得等的东西——斜射的光把礁石的层次全打出来了，浪花溅起来的地方能看见水雾。
 
-![斜射光下的礁石](/images/photos/coast-01.jpg)
+![斜射光下的礁石](/images/photos/coast-01.webp)
 
 *这就是等了两个小时的那一下。*
 
-![浪打礁石](/images/photos/coast-05.jpg)
+![浪打礁石](/images/photos/coast-05.webp)
 
-![远处的海岸线](/images/photos/coast-06.jpg)
+![远处的海岸线](/images/photos/coast-06.webp)
 
 ## 剩下几张
 
 照片放完了。下面这几张是随手拍的，构图一般，但当时的光挺舒服。
 
-![海边的树](/images/photos/coast-08.jpg)
+![海边的树](/images/photos/coast-08.webp)
 
-![浪与沙滩](/images/photos/coast-02.jpg)
+![浪与沙滩](/images/photos/coast-02.webp)
 
-![俯瞰海岸](/images/photos/coast-12.jpg)
+![俯瞰海岸](/images/photos/coast-12.webp)
 
-![岩石与海水](/images/photos/coast-13.jpg)
+![岩石与海水](/images/photos/coast-13.webp)
 
-![傍晚的海](/images/photos/coast-14.jpg)
+![傍晚的海](/images/photos/coast-14.webp)
 
-![最后一张](/images/photos/coast-15.jpg)
+![最后一张](/images/photos/coast-15.webp)
 
-![回程路上](/images/photos/coast-04.jpg)
+![回程路上](/images/photos/coast-04.webp)
 
 ## 关于这些照片的另一个话题
 

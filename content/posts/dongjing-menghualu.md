@@ -5,7 +5,7 @@ category: 读书
 tags: [历史]
 date: 2025-12-09
 readingMinutes: 9
-cover: /images/covers/waterfall.jpg
+cover: /images/covers/waterfall.webp
 ---
 
 这本书不太好归类。它不像史书那样讲朝代的兴亡，也不像游记那样写一路上的见闻，它写的是**一座城市在特定年代里的日常**。

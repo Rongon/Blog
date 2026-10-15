@@ -5,12 +5,12 @@ category: 技术
 tags: [TypeScript, 工程实践]
 date: 2026-03-09
 readingMinutes: 6
-cover: /images/photos/coast-13.jpg
+cover: /images/photos/coast-13.webp
 ---
 
 我不太写复杂的类型体操。下面这五个是真正每天都在用的，按使用频率排序。
 
-![正午的海面](/images/photos/coast-04.jpg)
+![正午的海面](/images/photos/coast-04.webp)
 
 *先放一张海，免得满屏都是代码。*
 
@@ -50,7 +50,7 @@ const statusText: Record<Status, string> = {
 
 比 `{ [key: string]: string }` 好在：**漏掉一个 key 会直接报错**。用它来做穷举映射特别舒服。
 
-![远处的海岸线](/images/photos/coast-06.jpg)
+![远处的海岸线](/images/photos/coast-06.webp)
 
 ## 四、`ReturnType<typeof fn>`
 

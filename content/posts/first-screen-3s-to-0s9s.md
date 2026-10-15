@@ -5,7 +5,7 @@ category: 技术
 tags: [性能优化, Vite]
 date: 2026-02-11
 readingMinutes: 8
-cover: /images/covers/mountains.jpg
+cover: /images/covers/mountains.webp
 ---
 
 先给结论：**这个站点的首屏传输量里，图片占了八成以上**。所以在图片降下来之前，任何针对 JS 的优化都是在抠剩下的那两成。

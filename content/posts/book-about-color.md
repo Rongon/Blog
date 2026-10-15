@@ -5,14 +5,14 @@ category: 读书
 tags: [设计, 历史]
 date: 2026-02-24
 readingMinutes: 6
-cover: /images/photos/coast-15.jpg
+cover: /images/photos/coast-15.webp
 ---
 
 我一直有个困惑：看别人的配色方案，觉得"就是这个感觉"；自己从色轮上挑，出来就是一坨。
 
 读完这本书我才明白，问题不在色轮上。
 
-![傍晚的海](/images/photos/coast-14.jpg)
+![傍晚的海](/images/photos/coast-14.webp)
 
 ## 一、我们不是在"看颜色"，是在"看关系"
 
@@ -28,7 +28,7 @@ cover: /images/photos/coast-15.jpg
 
 把一张好照片去色，剩下的灰度图依然好看；但把一张灰度好看的照片随便上色，大概率变丑。说明**明度关系是骨架，色相只是皮肤**。
 
-![正午的海面](/images/photos/coast-03.jpg)
+![正午的海面](/images/photos/coast-03.webp)
 
 *把这张图去色，层次还在；反过来就不成立。*
 
@@ -40,7 +40,7 @@ cover: /images/photos/coast-15.jpg
 
 书里的建议是：**让大部分颜色退到中低饱和，只留一个高饱和的做重点**。人的注意力是有限的，处处强调等于没有强调。
 
-![回程路上](/images/photos/coast-04.jpg)
+![回程路上](/images/photos/coast-04.webp)
 
 ## 四、和这个站有什么关系
 

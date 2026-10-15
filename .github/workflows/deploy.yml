@@ -1,0 +1,71 @@
+# 把构建产物发布到 GitHub Pages。
+#
+# 【为什么用 Actions 而不是手动推 gh-pages 分支】
+# 手动推的话，每次发版都要在本地 build 一次、再推一次构建产物；
+# 构建产物进了仓库历史，仓库会越来越胖。
+# 用 Actions 是「推代码 → 云端构建 → 发布」，仓库里只有源码。
+#
+# 【第一次用之前要做的事】
+# 仓库 Settings → Pages → Source 选 **GitHub Actions**。只做一次。
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # 允许在 Actions 页面手动点一次运行
+  workflow_dispatch:
+
+# 发布到 Pages 需要的权限，不多给
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同时只跑一个发布任务；新的推上来就把上一个还没发完的取消掉
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      # --mode ghpages 会走到 vite.config.ts 里那个分支，
+      # 把 base 从 '/' 换成 '/Program2026/'。
+      - name: 构建
+        run: pnpm build --mode ghpages
+
+      # GitHub Pages 是纯静态服务器：直接访问 /articles/xxx 会 404（磁盘上没这个文件）。
+      # 把 index.html 复制一份叫 404.html，Pages 在找不到文件时就会返回它，
+      # 页面加载后由前端路由接管，深链接和刷新都能用。
+      - name: 生成 SPA 的 404 回退
+        run: cp dist/index.html dist/404.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

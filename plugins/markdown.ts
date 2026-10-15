@@ -30,6 +30,12 @@ const LANGS = [
 let highlighterPromise: Promise<Highlighter> | null = null
 
 /**
+ * 最终生效的 base（本地是 `/`，GitHub Pages 子路径部署时是 `/Program2026/`）。
+ * 由下面的 configResolved 钩子写入，用来给正文里的图片补上前缀。
+ */
+let base = '/'
+
+/**
  * Shiki 的初始化是异步的，而插件工厂是同步调用的。
  * 所以这里做一层惰性缓存：第一次 transform 时才真正创建，
  * 之后所有文件共用同一个实例（创建一次要几百毫秒，别每个文件都建）。
@@ -104,6 +110,15 @@ export default function markdownPlugin(): Plugin {
     // 否则 .md 会被当成 JS 去解析然后报错。
     enforce: 'pre',
 
+    /**
+     * 拿到最终的 base。
+     * GitHub Pages 是子路径部署（`/Program2026/`），正文里写死的 `/images/x.jpg`
+     * 到线上会少一层前缀变成 404，所以这里得提前知道 base，在生成 HTML 时就补上。
+     */
+    configResolved(config) {
+      base = config.base
+    },
+
     async transform(src, id) {
       // id 上可能挂着查询串（比如 ?raw），只取文件路径部分
       const [file] = id.split('?')
@@ -148,6 +163,24 @@ export default function markdownPlugin(): Plugin {
           toc.push({ id: anchor, text, level })
         }
         return self.renderToken(tokens, idx, options)
+      }
+
+      // 正文里的图片：把以 `/` 开头的绝对路径补上 base 前缀。
+      // 只改 src，alt / title 之类的原样不动。
+      const renderImage =
+        md.renderer.rules.image ??
+        ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options))
+
+      md.renderer.rules.image = (tokens, idx, options, env, self) => {
+        const token = tokens[idx]
+        const srcIndex = token.attrIndex('src')
+        if (srcIndex >= 0 && token.attrs) {
+          const src = token.attrs[srcIndex][1]
+          if (src.startsWith('/') && !src.startsWith('//')) {
+            token.attrs[srcIndex][1] = `${base.replace(/\/+$/, '')}${src}`
+          }
+        }
+        return renderImage(tokens, idx, options, env, self)
       }
 
       const html = md.render(body)

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PostMeta } from '@/data/posts'
+import { asset } from '@/lib/asset'
 
 defineProps<{ post: PostMeta }>()
 </script>
@@ -8,7 +9,7 @@ defineProps<{ post: PostMeta }>()
   <article class="card">
     <RouterLink class="cover" :to="`/articles/${post.slug}`" tabindex="-1" aria-hidden="true">
       <!-- 优化前：原图大 JPG，没有 WebP、没有 srcset、没有懒加载 -->
-      <img :src="post.cover" :alt="post.title" />
+      <img :src="asset(post.cover)" :alt="post.title" />
     </RouterLink>
 
     <div class="body">

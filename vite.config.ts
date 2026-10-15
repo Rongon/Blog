@@ -9,7 +9,16 @@ import markdown from './plugins/markdown'
  * 这里没有代码分割配置、没有手动分包、没有预加载、没有压缩开关。
  * 这些会在阶段 3 作为「优化项」逐项加上去，才能产生真实的对比数据。
  */
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  /**
+   * GitHub Pages 把站点放在 `https://<用户名>.github.io/<仓库名>/` 这个**子路径**下，
+   * 所以产物里所有以 `/` 开头的绝对路径都要带上仓库名前缀，否则全部 404。
+   *
+   * 只有 `--mode ghpages`（CI 里用）才切换，本地开发和 preview 保持 `/`，
+   * 免得每次都要多敲一段 `/Program2026/`。
+   */
+  base: mode === 'ghpages' ? '/Program2026/' : '/',
+
   plugins: [
     vue(),
     // 自写的插件：构建时把 content/posts/*.md 编译成 JS 模块。
@@ -27,4 +36,4 @@ export default defineConfig({
   preview: {
     port: 4173,
   },
-})
+}))

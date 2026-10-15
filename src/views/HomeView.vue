@@ -3,6 +3,7 @@ import PostCard from '@/components/PostCard.vue'
 import ProjectCard from '@/components/ProjectCard.vue'
 import { getRecentPosts } from '@/data/posts'
 import { getFeaturedProjects } from '@/data/projects'
+import { asset } from '@/lib/asset'
 
 const recent = getRecentPosts(8)
 const featured = getFeaturedProjects(3)
@@ -46,7 +47,7 @@ const photos = [
            没有 srcset（手机也去下这张 3000px 的图）。
            三项都是阶段 3 的优化项，现在故意不做。 -->
       <figure class="banner">
-        <img src="/images/photos/coast-10.jpg" alt="从高处看下去的海岸线" />
+        <img :src="asset('/images/photos/coast-10.jpg')" alt="从高处看下去的海岸线" />
         <figcaption class="ui">题图 · 海岸线，下午四点</figcaption>
       </figure>
     </div>
@@ -85,7 +86,7 @@ const photos = [
         <RouterLink to="/articles/coastline">那篇图集 →</RouterLink>
       </div>
       <div class="grid cols-3 photos">
-        <img v-for="ph in photos" :key="ph.src" :src="ph.src" :alt="ph.alt" />
+        <img v-for="ph in photos" :key="ph.src" :src="asset(ph.src)" :alt="ph.alt" />
       </div>
     </div>
   </section>

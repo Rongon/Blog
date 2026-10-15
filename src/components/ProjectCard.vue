@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ProjectMeta } from '@/data/projects'
+import { asset } from '@/lib/asset'
 
 defineProps<{ project: ProjectMeta }>()
 </script>
@@ -7,10 +8,10 @@ defineProps<{ project: ProjectMeta }>()
 <template>
   <article class="pcard">
     <RouterLink v-if="project.to" class="thumb" :to="project.to" tabindex="-1" aria-hidden="true">
-      <img :src="project.thumb" :alt="project.name" />
+      <img :src="asset(project.thumb)" :alt="project.name" />
     </RouterLink>
     <div v-else class="thumb" aria-hidden="true">
-      <img :src="project.thumb" :alt="project.name" />
+      <img :src="asset(project.thumb)" :alt="project.name" />
     </div>
 
     <div class="body">

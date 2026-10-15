@@ -12,6 +12,19 @@
   font-size: var(--body-size);
   line-height: var(--leading);
 
+  /**
+   * 正文里的图片。
+   * height: auto 是为了配合 img 上的 width/height 属性——浏览器靠它算出宽高比、
+   * 提前把位置留出来，图片加载完就不会把下面的正文往下推（那就是 CLS）。
+   * 缺了这一行，img 会按属性里的原始像素显示，页面直接撑爆。
+   */
+  img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--rule-soft);
+    margin: 6px 0 26px;
+  }
+
   h2 {
     font-size: 26px;
     margin: 52px 0 18px;

@@ -61,6 +61,19 @@ const srcset = computed(() => {
 })
 
 const src = computed(() => asset(props.src))
+
+/**
+ * 原始宽高，用来输出 `width` / `height` 属性。
+ *
+ * 【为什么这两个属性这么重要】它们不是为了排版，而是给浏览器一个「这块地方占多大」的
+ * 提前量：图还没下载完，浏览器就知道该预留多高的位置，于是不会等图到了再把下面的内容
+ * 往下推。那个「推一下」就是 CLS（视觉偏移）的来源。
+ *
+ * 配合 CSS 里的 `height: auto`，浏览器会从这两个属性算出宽高比，图片又能等比缩放。
+ * 所以这不是「写死尺寸」，是「提前告诉浏览器比例」。
+ */
+const width = computed(() => table[props.src]?.w)
+const height = computed(() => table[props.src]?.h)
 </script>
 
 <template>
@@ -78,8 +91,22 @@ const src = computed(() => asset(props.src))
     :srcset="srcset"
     :sizes="srcset ? sizes : undefined"
     :alt="alt"
+    :width="width"
+    :height="height"
     :loading="eager ? 'eager' : 'lazy'"
     :fetchpriority="eager ? 'high' : undefined"
     decoding="async"
   />
 </template>
+
+<style scoped lang="scss">
+/**
+ * height: auto 是必须的。
+ * 有了它，浏览器才会用 width/height 属性去算「宽高比」并等比缩放；
+ * 没有它，img 会死板地按属性里的像素值显示（3000px 宽），页面直接爆掉。
+ */
+img {
+  max-width: 100%;
+  height: auto;
+}
+</style>

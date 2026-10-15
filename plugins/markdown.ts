@@ -221,6 +221,9 @@ export default function markdownPlugin(): Plugin {
             candidates.push(`${withBase(raw)} ${entry.w}w`)
             token.attrSet('srcset', candidates.join(', '))
             token.attrSet('sizes', ARTICLE_IMAGE_SIZES)
+            // 原始宽高：让浏览器在图到之前就把位置留出来，避免加载完把正文往下推（CLS）
+            token.attrSet('width', String(entry.w))
+            token.attrSet('height', String(entry.h))
           }
 
           token.attrs[srcIndex][1] = withBase(raw)

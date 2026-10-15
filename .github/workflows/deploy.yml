@@ -1,29 +1,28 @@
 # 把构建产物发布到 GitHub Pages。
 #
-# 【为什么用 Actions 而不是「部署分支」】
-# 后者是经典方式：把打包结果提交到一个分支（比如 gh-pages），GitHub 直接发布那个分支。
-# 那样产物会进 git 历史，每次构建都多一个 commit，仓库很快变得又大又乱。
-# Actions 方式是「构建在服务器上跑、产物直接交给 Pages」，仓库里只留源码。
+# 【为什么用 Actions 而不是手动推 gh-pages 分支】
+# 手动推的话，每次发版都要在本地 build 一次、再推一次构建产物；
+# 构建产物进了仓库历史，仓库会越来越胖。
+# 用 Actions 是「推代码 → 云端构建 → 发布」，仓库里只有源码。
 #
-# 【这个文件在干什么】
-# 两个 job：build 负责装依赖 + 打包 + 传产物，deploy 负责把产物发布出去。
-# deploy 里的 environment.url 就是发布后的地址，跑完可以在 Actions 页面直接点。
+# 【第一次用之前要做的事】
+# 仓库 Settings → Pages → Source 选 **GitHub Actions**。只做一次。
 
 name: Deploy to GitHub Pages
 
 on:
   push:
     branches: [main]
-  # 允许在 Actions 页面手动点一下就跑，调试时很有用
+  # 允许在 Actions 页面手动点一次运行
   workflow_dispatch:
 
-# Pages 发布需要的权限。少一个都会失败，且报错信息不直观
+# 发布到 Pages 需要的权限，不多给
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# 同一时间只跑一个发布。连推两次时，前一次没跑完的直接取消
+# 同时只跑一个发布任务；新的推上来就把上一个还没发完的取消掉
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -46,20 +45,16 @@ jobs:
       - name: 安装依赖
         run: pnpm install --frozen-lockfile
 
+      # --mode ghpages 会走到 vite.config.ts 里那个分支，
+      # 把 base 从 '/' 换成 '/Program2026/'。
       - name: 构建
-        # 用 build:ghpages 而不是 build：它会带上 `--mode ghpages`，
-        # 让 vite.config.ts 里的 base 变成 `/Program2026/`。
-        # GitHub Pages 把站点放在 /<仓库名>/ 这个子路径下，不带前缀的话资源全 404。
-        run: pnpm build:ghpages
+        run: pnpm build --mode ghpages
 
-      # GitHub Pages 是静态托管，不认 SPA 的客户端路由：
-      # 直接访问 /articles/xxx 这种深层地址时它会去找同名文件，找不到就返回 404。
-      # 把 index.html 复制一份叫 404.html，GitHub 在找不到文件时就会返回它，
-      # 于是路由重新回到前端手里，刷新深层页面就不会白屏。
-      - name: SPA 兜底页
+      # GitHub Pages 是纯静态服务器：直接访问 /articles/xxx 会 404（磁盘上没这个文件）。
+      # 把 index.html 复制一份叫 404.html，Pages 在找不到文件时就会返回它，
+      # 页面加载后由前端路由接管，深链接和刷新都能用。
+      - name: 生成 SPA 的 404 回退
         run: cp dist/index.html dist/404.html
-
-      - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:

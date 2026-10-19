@@ -38,6 +38,18 @@ const nav = [
   { to: '/about', label: '关于' },
 ]
 
+/**
+ * 慢版的地址。
+ *
+ * 慢版是 `v0-naive` 这个 tag 的构建产物，由 CI 额外构建一次、放进主站产物的
+ * `/naive/` 目录里（见 `.github/workflows/deploy.yml`）。
+ * 所以它和主站同源、同一次部署，不需要另外开仓库或另外配 Pages。
+ *
+ * 用 `import.meta.env.BASE_URL` 拼而不是写死 `/Program2026/naive/`：
+ * 本地开发时 base 是 `/`，写死就点不到了。
+ */
+const naiveHref = `${import.meta.env.BASE_URL}naive/`
+
 /** 窄屏下的折叠菜单。<900px 时桌面导航是隐藏的，没有这个就没法在手机上换页面 */
 const menuOpen = ref(false)
 
@@ -60,6 +72,17 @@ watch(
           {{ item.label }}
         </RouterLink>
       </nav>
+
+      <!-- 快版 / 慢版并排 —— 这是「优化前 vs 优化后」的入口。
+           慢版是 v0-naive 那个 tag 的构建产物（CI 额外构建一次、放进 /naive/，
+           见 .github/workflows/deploy.yml），内容一样，但一张图没压、没 srcset、
+           没代码分割、Element Plus 全量引入。
+           用 target="_blank" 是有原因的：那个版本里没有回「快版」的链接
+           （它是历史 tag 的产物，不能改），不新开一页进去就出不来了。 -->
+      <div class="ver" title="同一份内容的两个版本：慢版是性能优化之前的样子">
+        <span class="on">快版</span>
+        <a :href="naiveHref" target="_blank" rel="noopener">慢版</a>
+      </div>
 
       <!-- 登录态是异步的：本地有 session 才去装 AuthMenu（异步 chunk），
            否则当场渲染一个静态「登录」链接，Supabase SDK 一次都不下载。
@@ -88,6 +111,7 @@ watch(
       <RouterLink v-for="item in nav" :key="item.to" :to="item.to">
         {{ item.label }}
       </RouterLink>
+      <a :href="naiveHref" target="_blank" rel="noopener">慢版（优化前）</a>
     </nav>
   </header>
 
@@ -160,6 +184,40 @@ watch(
     &.router-link-exact-active {
       color: var(--ink);
       border-bottom: 1px solid var(--ink);
+    }
+  }
+}
+
+/* 快版 / 慢版：一个小分段控件，紧挨着导航放。
+   左边「快版」是当前站（反白 = 你在这里），右边「慢版」跳优化前的构建产物。 */
+.ver {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  line-height: 1;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  overflow: hidden;
+
+  .on,
+  a {
+    padding: 5px 9px;
+    white-space: nowrap;
+  }
+
+  .on {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  a {
+    color: var(--muted);
+
+    &:hover {
+      color: var(--ink);
+      border-bottom-color: transparent;
     }
   }
 }
@@ -260,6 +318,11 @@ watch(
   }
 
   .nav {
+    display: none;
+  }
+
+  /* 顶栏在窄屏放不下这个分段控件，改由折叠菜单里的「慢版（优化前）」承担 */
+  .ver {
     display: none;
   }
 

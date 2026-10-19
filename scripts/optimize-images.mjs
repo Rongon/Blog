@@ -27,9 +27,29 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const IMAGES_DIR = join(ROOT, 'public', 'images')
 const MANIFEST = join(ROOT, 'src', 'data', 'image-manifest.json')
 const QUALITY = 80
+/**
+ * 编码尝试次数。sharp 的 webp `effort` 是「编码器多努力」：0 最快最大，6 最慢最小。
+ * 默认是 4。调到 6 在**质量参数完全不变**的前提下能小 4%~6%，
+ * 代价只是跑脚本时多等几秒——一次性的，产物进仓库后运行时零成本。
+ */
+const EFFORT = 6
+
+/**
+ * 逐张覆盖质量。键是相对 public 的路径。
+ * 只给「体积明显异常」的单张降，不做全局降质——全局降质是不可逆的观感损失，
+ * 而按张降可以只针对真正的重灾区。
+ */
+const QUALITY_OVERRIDES = {
+  // 首页题图（LCP 元素）。竖构图 3000×3750，显示宽度 1032px，
+  // 1200 档在 q80 下就有 465 KB，是全站最大的一笔首屏开销。
+  '/images/photos/coast-10.jpg': 68,
+}
 
 /** srcset 用的档位。比原图还大的档位会被跳过——放大图片只会更大更糊。 */
 const WIDTHS = [400, 800, 1200, 1600]
+
+/** 这张图该用什么质量：有专属设置就用专属的，否则用全局值。 */
+const qualityFor = (publicPath) => QUALITY_OVERRIDES[publicPath] ?? QUALITY
 
 async function walk(dir) {
   const out = []
@@ -63,15 +83,20 @@ for (const src of files) {
   const originalWidth = meta.width ?? 0
   const originalHeight = meta.height ?? 0
 
+  const quality = qualityFor(publicPath)
+
   // 1. 全尺寸 WebP
-  await sharp(src).webp({ quality: QUALITY }).toFile(dest)
+  await sharp(src).webp({ quality, effort: EFFORT }).toFile(dest)
 
   // 2. 多档宽度
   const variants = []
   for (const w of WIDTHS) {
     if (w >= originalWidth) continue
     const variant = dest.replace(/\.webp$/, `-${w}.webp`)
-    await sharp(src).resize({ width: w, withoutEnlargement: true }).webp({ quality: QUALITY }).toFile(variant)
+    await sharp(src)
+      .resize({ width: w, withoutEnlargement: true })
+      .webp({ quality, effort: EFFORT })
+      .toFile(variant)
     variants.push(w)
   }
 
@@ -81,19 +106,25 @@ for (const src of files) {
   const before = (await stat(src)).size
   const after = (await stat(dest)).size
   totalOriginal += before
-  rows.push({ name: relative(IMAGES_DIR, src).replace(/\\/g, '/'), before, after, variants: variants.join('/') })
+  rows.push({ name: relative(IMAGES_DIR, src).replace(/\\/g, '/'), before, after, variants: variants.join('/'), q: quality })
 }
 
 await writeFile(MANIFEST, JSON.stringify(manifest, null, 2) + '\n', 'utf8')
 
 rows.sort((a, b) => b.before - a.before)
-console.log('file'.padEnd(30), 'jpg'.padStart(9), 'webp'.padStart(9), '档位'.padStart(18))
-console.log('-'.repeat(70))
+console.log('file'.padEnd(30), 'jpg'.padStart(9), 'webp'.padStart(9), 'q'.padStart(3), '档位'.padStart(18))
+console.log('-'.repeat(74))
 for (const r of rows) {
-  console.log(r.name.padEnd(30), kb(r.before).padStart(9), kb(r.after).padStart(9), r.variants.padStart(18))
+  console.log(
+    r.name.padEnd(30),
+    kb(r.before).padStart(9),
+    kb(r.after).padStart(9),
+    String(r.q).padStart(3),
+    r.variants.padStart(18),
+  )
 }
 const totalWebp = rows.reduce((s, r) => s + r.after, 0)
-console.log('-'.repeat(70))
+console.log('-'.repeat(74))
 console.log(
   `${rows.length} 张`.padEnd(30),
   kb(totalOriginal).padStart(9),

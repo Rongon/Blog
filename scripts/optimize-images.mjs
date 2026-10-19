@@ -1,5 +1,11 @@
 /**
- * 图片处理：把 public/images 下的 JPG 转成 WebP，并生成多档宽度 + 一份清单。
+ * 图片处理：把 raw-images 下的 JPG 转成 WebP，产出写进 public/images，并生成多档宽度 + 一份清单。
+ *
+ * 为什么原图放在 raw-images/ 而不是 public/images/（阶段 3 · 优化项 10）：
+ *   Vite 会把 public/ 整个原样拷进 dist/，不做任何引用分析。
+ *   21 张原始 JPG 共 35.7 MB，页面里一个都没引用，但它们照样进了每一次部署。
+ *   把它们挪出 public/，部署体积直接从 69 MB 掉到 33 MB —— 零代码改动、零指标影响。
+ *   注意这是「部署产物体积」，不是「首屏传输」：游览器本来就没下载过它们。
  *
  * 产出三样东西：
  *   1. `<name>.webp`          —— 全尺寸 WebP（就是原来那张图的 WebP 版）
@@ -24,6 +30,10 @@ import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
+/** 原图目录：不参与构建。raw-images/covers/x.jpg → /images/covers/x.webp */
+const SOURCE_DIR = join(ROOT, 'raw-images')
+/** 产物的 URL 前缀，同时也是 public/ 下的目录名。 */
+const PUBLIC_PREFIX = '/images'
 const IMAGES_DIR = join(ROOT, 'public', 'images')
 const MANIFEST = join(ROOT, 'src', 'data', 'image-manifest.json')
 const QUALITY = 80
@@ -62,9 +72,9 @@ async function walk(dir) {
   return out
 }
 
-const files = await walk(IMAGES_DIR)
+const files = await walk(SOURCE_DIR)
 if (!files.length) {
-  console.error('没有找到任何 jpg，检查 public/images 是否存在')
+  console.error('raw-images/ 下没有找到任何 jpg —— 原图是不是还在 public/images 里？')
   process.exit(1)
 }
 
@@ -74,8 +84,9 @@ let totalOriginal = 0
 const rows = []
 
 for (const src of files) {
-  // 相对 public 的路径，且以 / 开头 —— 这就是页面里引用它时写的那个路径
-  const publicPath = '/' + relative(join(ROOT, 'public'), src).replace(/\\/g, '/')
+  // 原图在 raw-images/，产物在 public/images/ —— 页面引用的是后者。
+  // 所以清单里的键仍然是 `/images/covers/xxx.webp`，跟以前一模一样，一行代码都不用改。
+  const publicPath = `${PUBLIC_PREFIX}/${relative(SOURCE_DIR, src).replace(/\\/g, '/')}`
   const webpPath = publicPath.replace(/\.(jpe?g)$/i, '.webp')
   const dest = join(ROOT, 'public', webpPath.replace(/^\//, ''))
 
@@ -106,7 +117,7 @@ for (const src of files) {
   const before = (await stat(src)).size
   const after = (await stat(dest)).size
   totalOriginal += before
-  rows.push({ name: relative(IMAGES_DIR, src).replace(/\\/g, '/'), before, after, variants: variants.join('/'), q: quality })
+  rows.push({ name: relative(SOURCE_DIR, src).replace(/\\/g, '/'), before, after, variants: variants.join('/'), q: quality })
 }
 
 await writeFile(MANIFEST, JSON.stringify(manifest, null, 2) + '\n', 'utf8')

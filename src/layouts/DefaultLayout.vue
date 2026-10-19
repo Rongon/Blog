@@ -77,11 +77,15 @@ watch(
            慢版是 v0-naive 那个 tag 的构建产物（CI 额外构建一次、放进 /naive/，
            见 .github/workflows/deploy.yml），内容一样，但一张图没压、没 srcset、
            没代码分割、Element Plus 全量引入。
-           用 target="_blank" 是有原因的：那个版本里没有回「快版」的链接
-           （它是历史 tag 的产物，不能改），不新开一页进去就出不来了。 -->
+
+           为什么现在敢在**同一个标签页**里切（早先是 target="_blank"）：
+           慢版那边已经有一条「← 回到快版」浮条了（scripts/add-back-link.mjs
+           在部署产物里注入，源码不动），所以进去能出来。
+           同页切换的好处是来回点三下也只有一个标签页 —— 不会攒出「两个快一个慢」。
+           历史记录的体验也正常：浏览器后退就是回到对面那个版本。 -->
       <div class="ver" title="同一份内容的两个版本：慢版是性能优化之前的样子">
         <span class="on">快版</span>
-        <a :href="naiveHref" target="_blank" rel="noopener">慢版</a>
+        <a :href="naiveHref">慢版</a>
       </div>
 
       <!-- 登录态是异步的：本地有 session 才去装 AuthMenu（异步 chunk），
@@ -111,7 +115,7 @@ watch(
       <RouterLink v-for="item in nav" :key="item.to" :to="item.to">
         {{ item.label }}
       </RouterLink>
-      <a :href="naiveHref" target="_blank" rel="noopener">慢版（优化前）</a>
+      <a :href="naiveHref">慢版（优化前）</a>
     </nav>
   </header>
 
@@ -189,7 +193,8 @@ watch(
 }
 
 /* 快版 / 慢版：一个小分段控件，紧挨着导航放。
-   左边「快版」是当前站（反白 = 你在这里），右边「慢版」跳优化前的构建产物。 */
+   左边「快版」是当前站（反白 = 你在这里），右边「慢版」同页跳优化前的构建产物。
+   对面（慢版）里有一条「← 回到快版」，所以来回切不会多开标签页。 */
 .ver {
   display: inline-flex;
   flex: none;

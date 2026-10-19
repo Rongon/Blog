@@ -12,6 +12,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { AUTH_STORAGE_KEY } from './authStorage'
 
 const url = import.meta.env.VITE_SUPABASE_URL
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -28,7 +29,8 @@ export const supabase = createClient(url, anonKey, {
     persistSession: true,
     // access token 过期前自动续期
     autoRefreshToken: true,
-    // 单独起一个 key，免得和别的项目打架
-    storageKey: 'p2026:auth',
+    // 单独起一个 key，免得和别的项目打架。
+    // 这个常量住在 lib/authStorage.ts 里 —— 那边没有 SDK 依赖，顶栏可以直接引它。
+    storageKey: AUTH_STORAGE_KEY,
   },
 })

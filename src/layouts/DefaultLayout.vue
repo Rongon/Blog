@@ -1,13 +1,35 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { defineAsyncComponent, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import { useTheme } from '@/composables/useTheme'
-import { useAuthStore } from '@/stores/auth'
+import { hasStoredSession } from '@/lib/authStorage'
 
 const { theme, toggleTheme } = useTheme()
-const auth = useAuthStore()
 const route = useRoute()
+
+/**
+ * 优化项 8 的全部内容：把登录态从首屏关键路径上摘下来。
+ *
+ * 三件事叠在一起才真的省下字节：
+ * 1. 登录 UI 拆成独立组件（`AuthMenu.vue`），Supabase 客户端跟着它走。
+ * 2. 用 `defineAsyncComponent` 装它 —— 于是它成了一个独立的 chunk，
+ *    不再被打进入口包。光做到这一步只是「挪到后面加载」，首页还是会把那 80 KiB 拉下来。
+ * 3. 用 `hasStoredSession()` **同步**看一眼 localStorage：没有本地 session 的访客
+ *    连挂载都不挂载，那个 chunk 一次都不会被请求。
+ *    绝大多数访客（包括 Lighthouse 的匿名访问）走的都是这条路。
+ */
+const AuthMenu = defineAsyncComponent(() => import('@/components/AuthMenu.vue'))
+
+const hasSession = ref(hasStoredSession())
+
+// 登录 / 注册成功都是以「跳转」收尾的，路由一变就重新看一眼本地 session。
+// 没有这一句，登录回来之后顶栏会一直卡在「登录」两个字上。
+watch(
+  () => route.fullPath,
+  () => {
+    hasSession.value = hasStoredSession()
+  },
+)
 
 const nav = [
   { to: '/', label: '首页' },
@@ -26,11 +48,6 @@ watch(
     menuOpen.value = false
   },
 )
-
-async function onSignOut() {
-  await auth.signOut()
-  ElMessage.success('已退出登录')
-}
 </script>
 
 <template>
@@ -44,11 +61,11 @@ async function onSignOut() {
         </RouterLink>
       </nav>
 
+      <!-- 登录态是异步的：本地有 session 才去装 AuthMenu（异步 chunk），
+           否则当场渲染一个静态「登录」链接，Supabase SDK 一次都不下载。
+           宽度固定在外层 .auth 上，两种状态互相切换时不会推动右边的按钮。 -->
       <div class="auth">
-        <template v-if="auth.isLoggedIn">
-          <span class="who">{{ auth.displayName }}</span>
-          <button class="out" type="button" @click="onSignOut">退出</button>
-        </template>
+        <AuthMenu v-if="hasSession" />
         <RouterLink v-else class="in" to="/login">登录</RouterLink>
       </div>
 
@@ -150,17 +167,13 @@ async function onSignOut() {
 .auth {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
   font-family: var(--font-sans);
   font-size: 13.5px;
-
-  .who {
-    color: var(--muted);
-    max-width: 120px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+  /* 「昵称 + 退出」的宽度上限（96 + 10 + 约 26），先占住。
+     占位不动，登录态加载完就不会有横向位移 —— 这是这一项守住 CLS=0 的关键。 */
+  min-width: 132px;
 
   .in {
     color: var(--muted);
@@ -168,20 +181,6 @@ async function onSignOut() {
     &:hover {
       color: var(--ink);
       border-bottom-color: transparent;
-    }
-  }
-
-  .out {
-    font-family: var(--font-sans);
-    font-size: 12.5px;
-    color: var(--faint);
-    background: none;
-    border: 0;
-    padding: 0;
-    cursor: pointer;
-
-    &:hover {
-      color: var(--danger);
     }
   }
 }

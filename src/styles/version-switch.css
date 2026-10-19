@@ -1,0 +1,65 @@
+/* 快版 / 慢版切换控件。
+ *
+ * 【为什么单独一个文件】
+ * 这段样式有两处引用，而且必须是**同一份**：
+ *   1. 快版：src/components/VersionSwitch.vue（Vue 渲染）
+ *   2. 慢版：scripts/inject-version-switch.mjs（部署时注入，因为慢版是历史 tag 的产物，源码不能改）
+ *
+ * 这是一个对照实验，两边的「仪器」得是同一台：同样的结构、同样的字号、同样的位置，
+ * 只有高亮项不同。否则读者在两版之间感受到的差异就不只是性能了 —— 那这张对比表就不成立。
+ * 早先快版入口在导航栏、慢版回头在右下角悬浮条，正是违反控制变量的典型错法。
+ *
+ * 【为什么是 fixed 而不是占一行的普通元素】
+ * 慢版是 SPA，页面全部由 JS 渲染进 #app，注入的节点只能落在 <body> 末尾。
+ * 想让它视觉上出现在「导航栏下方右上角」而不改动慢版的布局，fixed 是唯一不需要
+ * 给 body 加 padding、因而不会改变首屏布局和已有测量数字的做法。
+ *
+ * 【颜色为什么都带 fallback】
+ * 两版都定义了 --bg / --ink（含深色模式），变量存在就跟随主题；万一某个历史版本没有，回退到报纸风的字面值。
+ */
+.vsw {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 900;
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--ink, #1f0909);
+  border-radius: 2px;
+  background: var(--bg, #f3f2ee);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif);
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.vsw > * {
+  display: inline-block;
+  padding: 5px 9px;
+  color: var(--ink, #1f0909);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.vsw > a:hover {
+  background: var(--rule-soft, rgba(31, 9, 9, 0.08));
+}
+
+.vsw > .on {
+  background: var(--ink, #1f0909);
+  color: var(--bg, #f3f2ee);
+}
+
+@media (max-width: 899px) {
+  .vsw {
+    top: 68px;
+    right: 12px;
+    font-size: 11px;
+  }
+
+  .vsw > * {
+    padding: 4px 7px;
+  }
+}

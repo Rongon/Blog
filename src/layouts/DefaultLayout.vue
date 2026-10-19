@@ -3,6 +3,7 @@ import { defineAsyncComponent, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTheme } from '@/composables/useTheme'
 import { hasStoredSession } from '@/lib/authStorage'
+import VersionSwitch from '@/components/VersionSwitch.vue'
 
 const { theme, toggleTheme } = useTheme()
 const route = useRoute()
@@ -38,18 +39,6 @@ const nav = [
   { to: '/about', label: '关于' },
 ]
 
-/**
- * 慢版的地址。
- *
- * 慢版是 `v0-naive` 这个 tag 的构建产物，由 CI 额外构建一次、放进主站产物的
- * `/naive/` 目录里（见 `.github/workflows/deploy.yml`）。
- * 所以它和主站同源、同一次部署，不需要另外开仓库或另外配 Pages。
- *
- * 用 `import.meta.env.BASE_URL` 拼而不是写死 `/Program2026/naive/`：
- * 本地开发时 base 是 `/`，写死就点不到了。
- */
-const naiveHref = `${import.meta.env.BASE_URL}naive/`
-
 /** 窄屏下的折叠菜单。<900px 时桌面导航是隐藏的，没有这个就没法在手机上换页面 */
 const menuOpen = ref(false)
 
@@ -73,20 +62,9 @@ watch(
         </RouterLink>
       </nav>
 
-      <!-- 快版 / 慢版并排 —— 这是「优化前 vs 优化后」的入口。
-           慢版是 v0-naive 那个 tag 的构建产物（CI 额外构建一次、放进 /naive/，
-           见 .github/workflows/deploy.yml），内容一样，但一张图没压、没 srcset、
-           没代码分割、Element Plus 全量引入。
-
-           为什么现在敢在**同一个标签页**里切（早先是 target="_blank"）：
-           慢版那边已经有一条「← 回到快版」浮条了（scripts/add-back-link.mjs
-           在部署产物里注入，源码不动），所以进去能出来。
-           同页切换的好处是来回点三下也只有一个标签页 —— 不会攒出「两个快一个慢」。
-           历史记录的体验也正常：浏览器后退就是回到对面那个版本。 -->
-      <div class="ver" title="同一份内容的两个版本：慢版是性能优化之前的样子">
-        <span class="on">快版</span>
-        <a :href="naiveHref">慢版</a>
-      </div>
+      <!-- 快版 / 慢版开关不在导航栏里 —— 它固定在导航栏下方的右上角，
+           见模板末尾的 <VersionSwitch /> 与 src/styles/version-switch.css。
+           放进导航栏会挤掉 首页/项目/文章/关于 这些真链接，观感也差。 -->
 
       <!-- 登录态是异步的：本地有 session 才去装 AuthMenu（异步 chunk），
            否则当场渲染一个静态「登录」链接，Supabase SDK 一次都不下载。
@@ -115,9 +93,12 @@ watch(
       <RouterLink v-for="item in nav" :key="item.to" :to="item.to">
         {{ item.label }}
       </RouterLink>
-      <a :href="naiveHref">慢版（优化前）</a>
     </nav>
   </header>
+
+  <!-- 快版 / 慢版开关。fixed 定位在导航栏下方右上角，所以放在文档哪个位置都不影响视觉 ——
+       放这儿是为了让它只出现一次，且语义上属于「站点外壳」而不是某个页面。 -->
+  <VersionSwitch />
 
   <main>
     <slot />
@@ -192,40 +173,8 @@ watch(
   }
 }
 
-/* 快版 / 慢版：一个小分段控件，紧挨着导航放。
-   左边「快版」是当前站（反白 = 你在这里），右边「慢版」同页跳优化前的构建产物。
-   对面（慢版）里有一条「← 回到快版」，所以来回切不会多开标签页。 */
-.ver {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  font-family: var(--font-sans);
-  font-size: 12.5px;
-  line-height: 1;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  overflow: hidden;
-
-  .on,
-  a {
-    padding: 5px 9px;
-    white-space: nowrap;
-  }
-
-  .on {
-    background: var(--ink);
-    color: var(--bg);
-  }
-
-  a {
-    color: var(--muted);
-
-    &:hover {
-      color: var(--ink);
-      border-bottom-color: transparent;
-    }
-  }
-}
+/* 快版 / 慢版开关的样式不在这里 —— 它在 src/styles/version-switch.css，
+   一份文件同时给快版（Vue）和慢版（部署时注入）用，两版必须长得一模一样。 */
 
 .auth {
   display: flex;
@@ -323,11 +272,6 @@ watch(
   }
 
   .nav {
-    display: none;
-  }
-
-  /* 顶栏在窄屏放不下这个分段控件，改由折叠菜单里的「慢版（优化前）」承担 */
-  .ver {
     display: none;
   }
 

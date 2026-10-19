@@ -100,11 +100,11 @@ jobs:
           cp public/fonts/*.woff2 naive-tree/dist/fonts/
           sed -i 's|url(/fonts/|url(../fonts/|g' naive-tree/dist/assets/*.css
 
-      # 慢版进去就出不来：那个 tag 里没有回主站的链接，也不能回改历史。
-      # 所以在部署产物里注入一条浮条（内联 CSS，470 字节，0 个额外请求）。
-      # 源码不动 —— 慢版仍然是 v0-naive 的真实构建产物。
-      - name: 给慢版加「回到快版」入口
-        run: node scripts/add-back-link.mjs naive-tree/dist /Program2026/
+      # 慢版进去就出不来，而且不能改它的源码（那是历史 tag 的产物）。
+      # 于是在部署产物里注入「快版 / 慢版」开关：与快版同一份 HTML 结构 + 同一份 CSS
+      # （读 src/styles/version-switch.css），只有高亮项不同。
+      - name: 给慢版注入快版/慢版开关
+        run: node scripts/inject-version-switch.mjs naive-tree/dist /Program2026/
 
       - name: 把慢版放进主站产物的 /naive/
         run: |

@@ -11,6 +11,9 @@ import { installElement } from './plugins/element'
 import './styles/tokens.scss'
 import './styles/base.scss'
 import './styles/article.scss'
+// 快版 / 慢版开关：这份 CSS 慢版那边也读同一个文件（部署时内联注入），
+// 两版共用一份样式是多版本对照的「控制变量」—— 结构、字号、位置必须一致。
+import './styles/version-switch.css'
 
 const app = createApp(App)
 

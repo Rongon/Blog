@@ -5,6 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="曾泽龙 · 前端工程师 · 个人作品集与技术博客" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!--
+      优化项 9 · 预加载。
+      %BASE_URL% 会被 Vite 换成对应的 base（本地是 /，GitHub Pages 是 /Program2026/），
+      手写死路径会在另一个环境里 404。
+
+      ① 题图。它是 LCP 元素，但这张图由 Vue 渲染 —— 浏览器要等 JS 下载、解析、
+         执行完才发现它。在 HTML 里先声明一次，请求能早半个网络往返发出。
+         media 条件是为了窄屏：窄屏按 srcset 会选 800 档，预加载 1200 就是白下。
+      ② 正文衬线字体。首页真的只用得到 400 这一份（700 是文章页的粗体，
+         首页不预加载，避免白白多下 29 KB）。
+    -->
+    <link
+      rel="preload"
+      as="image"
+      media="(min-width: 900px)"
+      href="%BASE_URL%images/photos/coast-10-1200.webp"
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="%BASE_URL%fonts/pt-serif-latin-400.woff2"
+    />
     <title>曾泽龙 · 前端工程师</title>
   </head>
   <body>

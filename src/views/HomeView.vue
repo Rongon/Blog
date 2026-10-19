@@ -4,6 +4,11 @@ import ProjectCard from '@/components/ProjectCard.vue'
 import ResponsiveImage from '@/components/ResponsiveImage.vue'
 import { getRecentPosts } from '@/data/posts'
 import { getFeaturedProjects } from '@/data/projects'
+import { prefetchRouteChunks } from '@/lib/prefetchRoutes'
+
+// 优化项 9：首页画完之后，趁空闲把「点进去会去的页面」提前下载好。
+// 只挂在首页 —— 这是访客真正会做「下一步选择」的地方。
+prefetchRouteChunks()
 
 /**
  * 告诉浏览器这些图在不同断点下会占多宽。

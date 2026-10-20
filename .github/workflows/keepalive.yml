@@ -1,0 +1,66 @@
+# 免费版 Supabase 有一条规则：连续 7 天没有任何请求，项目会被暂停。
+# 暂停之后不会自己醒，评论区的接口全部 500 —— 面试官点开文章页看到的就是这个。
+#
+# 这个 workflow 每周打两次接口，让项目始终有「活动」记录。
+# 时间选周一和周四：就算有一两次被 GitHub 跳过（免费 runner 排队、仓库长期不提交
+# 会被自动禁用），间隔也远小于 7 天。
+#
+# 为什么直接读仓库里的 .env，而不是用 GitHub Secrets：
+# 这两个值本来就是公开的 —— publishable key 会被打进前端 bundle，任何人 F12 都能看到。
+# 再往 secrets 里存一份，只会在「换了 Supabase 项目」时多出一个不同步的地方。
+
+name: keepalive
+
+on:
+  schedule:
+    # 分、时、日、月、周几。'17 2 * * 1,4' = 每周一、周四 02:17 UTC（北京时间 10:17）
+    # 不写整点：GitHub 的定时任务在整点排队最严重，可能延迟几十分钟甚至跳过。
+    - cron: '17 2 * * 1,4'
+  # 允许手动触发 —— 改完这个文件后立刻点一下就能验证，不用等周一。
+  workflow_dispatch:
+
+# 同一时间只跑一个，避免手动触发和定时撞在一起
+concurrency:
+  group: keepalive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      # 不装 Node、不装依赖：这一件事只需要 curl。
+      - name: 打一次 Supabase REST 请求
+        run: |
+          set -euo pipefail
+
+          # tr -d '\r' 是因为 Windows 上编辑的文件可能是 CRLF，变量尾部会带一个 \r，
+          # 拼进 URL 里就变成一个不存在的路径，报出来的错还很难懂。
+          URL=$(sed -n 's/^VITE_SUPABASE_URL=//p' .env | tr -d '\r')
+          KEY=$(sed -n 's/^VITE_SUPABASE_ANON_KEY=//p' .env | tr -d '\r')
+
+          if [ -z "$URL" ] || [ -z "$KEY" ]; then
+            echo "::error::.env 里没读到 VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY"
+            exit 1
+          fi
+
+          echo "项目地址: $URL"
+
+          # 查的是空表 comments 的一行，只为了产生一次真实的 API 请求。
+          # anon key 受 RLS 限制，只能读到公开的评论，读不到别的表。
+          CODE=$(curl -sS -o /tmp/body -w '%{http_code}' \
+            -H "apikey: $KEY" \
+            -H "Authorization: Bearer $KEY" \
+            "$URL/rest/v1/comments?select=id&limit=1")
+
+          echo "HTTP $CODE"
+          echo "响应: $(head -c 200 /tmp/body || true)"
+
+          if [ "$CODE" != "200" ]; then
+            echo "::error::保活失败（HTTP $CODE）。如果项目已被暂停，需要去 Supabase 控制台手动恢复。"
+            exit 1
+          fi
+
+          echo "保活成功：项目有活动记录了"

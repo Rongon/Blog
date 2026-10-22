@@ -208,5 +208,29 @@
       1200,
       1600
     ]
+  },
+  "/images/tech/transfer-slow-vs-fast.webp": {
+    "w": 1200,
+    "h": 540,
+    "variants": [
+      800,
+      1200
+    ]
+  },
+  "/images/tech/transfer-by-step.webp": {
+    "w": 1200,
+    "h": 620,
+    "variants": [
+      800,
+      1200
+    ]
+  },
+  "/images/tech/perf-score-runs.webp": {
+    "w": 1200,
+    "h": 560,
+    "variants": [
+      800,
+      1200
+    ]
   }
 }

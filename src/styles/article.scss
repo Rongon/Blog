@@ -8,6 +8,8 @@
  * 所以这一份的责任边界很清楚：谁被 v-html 插进来，谁就归它管。
  */
 
+@use '@/styles/breakpoints' as *;
+
 .article-body {
   font-size: var(--body-size);
   line-height: var(--leading);
@@ -128,6 +130,21 @@
     border-collapse: collapse;
     margin: 0 0 26px;
     font-size: 15px;
+  }
+
+  /* 窄屏：表格不挤成一列一列地换行，改成可横向滑动。
+     数字类的表格在手机上换行会读不出对应关系（「7,810」和「ms」被拆到两行）。 */
+  @include sm-down {
+    table {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+
+      th,
+      td {
+        padding: 8px 10px;
+      }
+    }
   }
 
   thead th {

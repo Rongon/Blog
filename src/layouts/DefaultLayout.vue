@@ -106,7 +106,7 @@ watch(
 
   <footer class="foot">
     <div class="wrap">
-      曾泽龙 · 前端工程师 · 本站为个人作品集与技术博客，源码公开
+      曾泽龙 · 前端工程师 · 本站为个人技术博客，源码公开
     </div>
   </footer>
 </template>

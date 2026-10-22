@@ -11,7 +11,7 @@
  * 并把它们登记进 src/data/image-manifest.json，这样 <img> 才有 width/height，
  * 不会因为正文图片把布局顶下去（CLS 就是这么来的）。
  */
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import sharp from 'sharp'
 
@@ -63,6 +63,8 @@ function measure(report) {
 
 const median = (nums) => nums.slice().sort((a, b) => a - b)[Math.floor(nums.length / 2)]
 const kib = (n) => `${Math.round(n).toLocaleString('en-US')} KiB`
+/** KiB → 十进制 MB（1 KiB = 1024 B，1 MB = 1000 KB）。图上统一用 MB，读者不用换算。 */
+const mb = (n) => `${((n * 1024) / 1e6).toFixed(1)} MB`
 
 /* ---------- SVG 小工具 ---------- */
 
@@ -107,7 +109,7 @@ function chartTransfer(slow, fast) {
 
   let body = ''
   body += text(120, 74, '首屏传输构成：慢版 vs 快版', { size: 30, weight: 700 })
-  body += text(120, 108, '同一份内容、同一台机器、冷缓存。单位 KiB，数字取 5 次中位数。', {
+  body += text(120, 108, '同一份内容、同一台机器、冷缓存。单位 MB，数字取 5 次中位数。', {
     size: 19,
     fill: C.muted,
   })
@@ -123,7 +125,7 @@ function chartTransfer(slow, fast) {
       x += w
     }
 
-    body += text(left + scale(r.data.total) + 20, r.y + 34, kib(r.data.total), { size: 26, weight: 700 })
+    body += text(left + scale(r.data.total) + 20, r.y + 34, mb(r.data.total), { size: 26, weight: 700 })
     body += text(left + scale(r.data.total) + 20, r.y + 62, `图片占 ${Math.round((r.data.image / r.data.total) * 100)}%`, {
       size: 17,
       fill: C.muted,
@@ -189,13 +191,13 @@ function chartSteps(steps) {
     if (keyIdx.has(i)) {
       // v2 那个点正好在折线的拐角上，标签放下面才不会压在线上
       const dy = i === 2 ? 30 : -18
-      body += text(x, y + dy, kib(s.total), { size: 17, anchor: 'middle', weight: 700 })
+      body += text(x, y + dy, mb(s.total), { size: 17, anchor: 'middle', weight: 700 })
     }
     body += text(x, bottom + 30, s.short, { size: 15, anchor: 'middle', fill: C.muted })
   })
 
   body += line(left, 520, WIDTH - 120, 520)
-  body += text(120, 552, '前两项（转 WebP、加 srcset）拿走了 97% 的收益；后面八项合计只降了 688 KiB。', {
+  body += text(120, 552, '前两项（转 WebP、加 srcset）拿走了 97% 的收益；后面八项合计只降了 0.7 MB。', {
     size: 18,
   })
   body += text(120, 580, '数据来源：perf/baseline-desktop.json 与 perf/step*.json', { size: 16, fill: C.muted })
@@ -330,13 +332,36 @@ for (const chart of charts) {
   manifest[`/images/tech/${chart.name}.webp`] = {
     w: width,
     h: height,
-    variants: [800, 1200],
+    // 只声明真的存在的档位：源图就是 1200 宽，再写 1200 的变体会指向一个不存在的文件，
+    // 手机 DPR 高的设备正好会挑到它，结果就是图裂开。
+    variants: [800].filter((v) => v < width),
   }
 
   console.log(`${chart.name}.webp  ${width}x${height}  ${(full.length / 1024).toFixed(1)} KiB`)
 }
 
 await writeFile(MANIFEST, JSON.stringify(manifest, null, 2) + '\n')
+
+// 自检：manifest 里声明的每一个 srcset 候选，磁盘上都必须真的有这个文件。
+// 少一个，窄屏或高分屏设备就会挑到那个不存在的档位，表现为「图裂了」。
+{
+  let missing = 0
+  for (const [key, meta] of Object.entries(manifest)) {
+    const base = key.replace(/\.webp$/, '')
+    const candidates = [...meta.variants.map((w) => `${base}-${w}.webp`), key]
+    for (const candidate of candidates) {
+      const disk = new URL(`../public${candidate}`, import.meta.url)
+      try {
+        await access(disk)
+      } catch {
+        console.error(`  ✗ manifest 声明的文件不存在：${candidate}`)
+        missing += 1
+      }
+    }
+  }
+  if (missing > 0) process.exitCode = 1
+  console.log(missing === 0 ? '\nsrcset 自检：全部候选都存在' : `\nsrcset 自检：${missing} 个缺失`)
+}
 
 console.log('\n数字核对：')
 console.log(`  慢版首屏 ${Math.round(slow.total)} KiB（图片 ${Math.round(slow.image)}）`)

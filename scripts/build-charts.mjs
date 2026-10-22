@@ -310,7 +310,140 @@ const fast = {
   font: median(fastRuns.map((r) => r.font)),
 }
 
+/* ---------- 图 4：乐观更新的状态流转（示意图，无数据依赖） ---------- */
+
+function chartOptimisticFlow() {
+  const H = 520
+
+  const box = (x, y, w, h, title, note, stroke) => {
+    let s = `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="${stroke}" stroke-width="1.5"/>`
+    s += text(x + 24, y + 38, title, { size: 21, weight: 700 })
+    if (note) s += text(x + 24, y + 68, note, { size: 16, fill: C.muted })
+    return s
+  }
+
+  const arrow = (pts) =>
+    `<polyline points="${pts.join(' ')}" fill="none" stroke="${C.muted}" stroke-width="1.5"/>` +
+    (() => {
+      const [x1, y1] = pts[pts.length - 2].split(',').map(Number)
+      const [x2, y2] = pts[pts.length - 1].split(',').map(Number)
+      const d = x2 > x1 ? [[x2, y2], [x2 - 8, y2 - 5], [x2 - 8, y2 + 5]] : [[x2, y2], [x2 + 8, y2 - 5], [x2 + 8, y2 + 5]]
+      return `<polygon points="${d.map((p) => p.join(',')).join(' ')}" fill="${C.muted}"/>`
+    })()
+
+  let body = ''
+  body += text(120, 74, '乐观更新的三条路', { size: 30, weight: 700 })
+  body += text(120, 108, '列表里那条评论的四种状态里，只有一种是服务端确认过的。', {
+    size: 19,
+    fill: C.muted,
+  })
+
+  body += box(90, 214, 180, 84, '点发表', '草稿进内存', C.ink)
+  body += box(340, 190, 250, 132, '评论立刻上屏', '', C.data)
+  body += text(365, 262, '临时 id：tmp-xxx', { size: 16, fill: C.muted })
+  body += text(365, 292, 'clientId 已生成', { size: 16, fill: C.muted })
+
+  body += arrow(['270,256', '340,256'])
+
+  // 分叉：成功向上，失败向下
+  body += arrow(['590,236', '650,236', '650,176', '724,176'])
+  body += arrow(['590,276', '650,276', '650,380', '724,380'])
+
+  body += box(724, 134, 386, 86, '成功：换成真实数据', 'pending → false，id 换成服务端的', C.data)
+  body += box(724, 338, 386, 86, '失败：按临时 id 删掉', '并把草稿写回输入框', C.clay)
+
+  body += text(120, 470, '注：删的时候不能 pop() —— 等待期间用户可能又发了别的，最后一条未必是这一条。', {
+    size: 17,
+    fill: C.muted,
+  })
+
+  return frame(H, body)
+}
+
+/* ---------- 图 5：Markdown 两条链路（示意图） ---------- */
+
+const flowBox = (x, y, w, h, title, note, stroke) => {
+  let s = `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="${stroke}" stroke-width="1.5"/>`
+  s += text(x + 20, y + 32, title, { size: 19, weight: 700 })
+  if (note) s += text(x + 20, y + 60, note, { size: 15, fill: C.muted })
+  return s
+}
+
+const flowArrow = (x1, x2, y) => {
+  const head = `<polygon points="${x2},${y} ${x2 - 9},${y - 5} ${x2 - 9},${y + 5}" fill="${C.muted}"/>`
+  return line(x1, y, x2 - 2, y, C.muted, 1.5) + head
+}
+
+function chartMarkdownPipeline() {
+  const H = 560
+
+  let body = ''
+  body += text(120, 74, 'Markdown 该在谁的机器上解析', { size: 30, weight: 700 })
+  body += text(120, 108, '同一份内容，两条链路。差别在于那份工作乘以谁。', {
+    size: 19,
+    fill: C.muted,
+  })
+
+  // 上：浏览器解析（未采用）
+  body += text(120, 186, '浏览器解析（没用这条）', { size: 20, weight: 700, fill: C.muted })
+  body += flowBox(120, 206, 150, 76, '.md 文件', '', C.muted)
+  body += flowArrow(270, 344, 244)
+  body += flowBox(344, 206, 270, 76, '下载解析器 + 高亮器', '几十到几百 KB', C.clay)
+  body += flowArrow(614, 688, 244)
+  body += flowBox(688, 206, 210, 76, '主线程解析', '阻塞渲染', C.clay)
+  body += flowArrow(898, 972, 244)
+  body += flowBox(972, 206, 168, 76, '文字出现', '晚一步', C.muted)
+  body += text(120, 316, '成本 × 访问次数：每个访客都要重新付一次', { size: 16, fill: C.clay })
+
+  // 下：构建时解析（采用）
+  body += text(120, 396, '构建时解析（采用这条）', { size: 20, weight: 700, fill: C.data })
+  body += flowBox(120, 416, 150, 76, '.md 文件', '', C.data)
+  body += flowArrow(270, 344, 454)
+  body += flowBox(344, 416, 270, 76, 'Vite transform', 'Node 里跑一次', C.data)
+  body += flowArrow(614, 688, 454)
+  body += flowBox(688, 416, 210, 76, 'HTML 进产物', '只是字符串', C.data)
+  body += flowArrow(898, 972, 454)
+  body += flowBox(972, 416, 168, 76, '直接渲染', '不用等 JS 解析', C.data)
+  body += text(120, 526, '成本 × 1：产物里没有任何 Markdown 解析器', { size: 16, fill: C.data })
+
+  return frame(H, body)
+}
+
+/* ---------- 图 6：类型能证明的三层（示意图） ---------- */
+
+function chartTypesLayers() {
+  const H = 460
+  const rows = [
+    { y: 150, title: '形状对', note: '字段名、字段类型、有没有漏字段', ok: true, eg: 'mapRow 少写一个字段 → 构建失败' },
+    { y: 250, title: '契约对', note: '组件要什么参数、函数返回什么', ok: true, eg: '忘了传 postSlug → 编译报错' },
+    { y: 350, title: '业务对', note: '「这条评论该不该显示」这类判断', ok: false, eg: '类型不知道，只能靠人写 if' },
+  ]
+
+  let body = ''
+  body += text(120, 74, '类型能证明的三层', { size: 30, weight: 700 })
+  body += text(120, 108, '越往下越弱。说「项目开了 strict」的时候，要先知道自己在说哪一层。', {
+    size: 19,
+    fill: C.muted,
+  })
+
+  for (const r of rows) {
+    const color = r.ok ? C.data : C.clay
+    body += flowBox(120, r.y, 300, 78, r.title, r.note, color)
+    body += text(460, r.y + 34, r.eg, { size: 17, fill: C.muted })
+    body += text(460, r.y + 62, r.ok ? '编译期能保证' : '编译期管不了', {
+      size: 16,
+      weight: 700,
+      fill: color,
+    })
+  }
+
+  return frame(H, body)
+}
+
 const charts = [
+  { name: 'types-three-layers', svg: chartTypesLayers() },
+  { name: 'markdown-pipeline', svg: chartMarkdownPipeline() },
+  { name: 'optimistic-flow', svg: chartOptimisticFlow() },
   { name: 'transfer-slow-vs-fast', svg: chartTransfer(slow, fast) },
   { name: 'transfer-by-step', svg: chartSteps(steps) },
   { name: 'perf-score-runs', svg: chartRuns(fastRuns, slowRuns) },

@@ -229,5 +229,26 @@
     "variants": [
       800
     ]
+  },
+  "/images/tech/optimistic-flow.webp": {
+    "w": 1200,
+    "h": 520,
+    "variants": [
+      800
+    ]
+  },
+  "/images/tech/markdown-pipeline.webp": {
+    "w": 1200,
+    "h": 560,
+    "variants": [
+      800
+    ]
+  },
+  "/images/tech/types-three-layers.webp": {
+    "w": 1200,
+    "h": 460,
+    "variants": [
+      800
+    ]
   }
 }

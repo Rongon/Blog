@@ -6,6 +6,19 @@
     <meta name="description" content="曾泽龙 · 前端工程师 · 个人技术博客" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <!--
+      主题要在第一帧之前就生效，否则深色模式的用户每次刷新都会先看到一片白。
+      这段必须内联、同步执行，且放在样式表之前：任何「等 JS 框架启动再设」的做法
+      都晚了一帧，那一帧就是白闪。key 要和 src/composables/useTheme.ts 里的一致。
+    -->
+    <script>
+      try {
+        var t = localStorage.getItem('p2026:theme')
+        if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t)
+      } catch (e) {
+        /* 隐私模式下 localStorage 不可用，保持默认浅色即可 */
+      }
+    </script>
+    <!--
       优化项 9 · 预加载。
       %BASE_URL% 会被 Vite 换成对应的 base（本地是 /，GitHub Pages 是 /Program2026/），
       手写死路径会在另一个环境里 404。

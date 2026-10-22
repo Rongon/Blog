@@ -21,6 +21,8 @@ cover: /images/covers/mountains.webp
 
 所以我把它们关掉，又测了一遍。
 
+![关掉 preload 之后的 LCP 对比](/images/tech/lcp-preload-ab.webp)
+
 ## 为什么题图需要预加载
 
 这个站的题图是 LCP 元素。但它不是写在 HTML 里的 `<img>`，而是 Vue 组件渲染出来的。

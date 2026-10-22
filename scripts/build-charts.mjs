@@ -440,7 +440,49 @@ function chartTypesLayers() {
   return frame(H, body)
 }
 
+/* ---------- 图 7：preload 受控 A/B（数据来自本地 dist / dist-np 各 3 次） ---------- */
+
+function chartLcpPreload() {
+  const H = 430
+  const left = 210
+  const maxW = WIDTH - left - 260
+  const rows = [
+    { name: '有 preload', runs: [1237, 1237, 1253], color: C.data },
+    { name: '无 preload', runs: [1423, 1418, 1430], color: C.clay },
+  ]
+  const max = 1600
+  const scale = (v) => (v / max) * maxW
+
+  let body = ''
+  body += text(120, 74, '关掉 preload，LCP 慢了 186 ms', { size: 30, weight: 700 })
+  body += text(120, 108, '本地两份产物只差这一个变量，冷缓存各跑 3 次。FCP 两边都是 743 ms。', {
+    size: 19,
+    fill: C.muted,
+  })
+
+  rows.forEach((r, i) => {
+    const y = 200 + i * 110
+    const med = median(r.runs)
+    body += text(left - 24, y + 40, r.name, { size: 22, anchor: 'end', weight: 700 })
+    body += rect(left, y, scale(med), 56, r.color)
+    body += text(left + scale(med) + 18, y + 38, `${med.toLocaleString('en-US')} ms`, {
+      size: 24,
+      weight: 700,
+    })
+    // 三次原始值写成文字：这几个数太接近，画点会糊成一团
+    body += text(left + 4, y - 14, `三次：${r.runs.join(' / ')}`, { size: 16, fill: C.muted })
+  })
+
+  body += text(left, 400, '同一个静态服务器、同一台机器、每次新建浏览器用户目录。', {
+    size: 16,
+    fill: C.muted,
+  })
+
+  return frame(H, body)
+}
+
 const charts = [
+  { name: 'lcp-preload-ab', svg: chartLcpPreload() },
   { name: 'types-three-layers', svg: chartTypesLayers() },
   { name: 'markdown-pipeline', svg: chartMarkdownPipeline() },
   { name: 'optimistic-flow', svg: chartOptimisticFlow() },

@@ -250,5 +250,12 @@
     "variants": [
       800
     ]
+  },
+  "/images/tech/lcp-preload-ab.webp": {
+    "w": 1200,
+    "h": 430,
+    "variants": [
+      800
+    ]
   }
 }

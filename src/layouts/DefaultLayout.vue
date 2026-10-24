@@ -210,8 +210,20 @@ watch(
      （见上面 hasStoredSession 的同步判断），所以他们看到的顶栏永远是稳定的，CLS 不受影响。 */
   min-width: 0;
 
+  /* 「登录」原来是 RouterLink（一个 <a>），现在是 <button>（因为点击要直接开始
+     GitHub 授权，不能走路由）。按钮自带浏览器样式：灰底、边框、内边距，
+     深色模式下会露出一块白 —— 所以必须把外观彻底还原成纯文字，
+     否则顶栏和慢版对不上，而且难看。 */
   .in {
+    appearance: none;
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    font: inherit;
     color: var(--muted);
+    line-height: inherit;
+    cursor: pointer;
 
     &:hover {
       color: var(--ink);

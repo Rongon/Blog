@@ -220,7 +220,6 @@ function formatTime(iso: string): string {
         :disabled="submitting"
       ></textarea>
       <div class="actions">
-        <span class="ui hint">同一个人 30 秒内只能发一条</span>
         <el-button type="primary" :loading="submitting" :disabled="!draft.trim()" @click="onSubmit">
           发表
         </el-button>
@@ -322,11 +321,6 @@ function formatTime(iso: string): string {
   margin-top: 10px;
 }
 
-.hint {
-  font-size: 12.5px;
-  color: var(--faint);
-}
-
 .needlogin {
   margin-bottom: 34px;
   padding: 20px 22px;
@@ -410,16 +404,11 @@ function formatTime(iso: string): string {
     padding-top: 26px;
   }
 
-  // 窄屏上「30 秒一条」的提示和按钮挤在一行会换行，干脆改成上下排、按钮占满
+  // 窄屏上「发表」按钮单独占一行，占满宽度
   .actions {
     flex-direction: column;
     align-items: stretch;
     gap: 10px;
-
-    .hint {
-      order: 2;
-      text-align: center;
-    }
   }
 
   .needlogin {

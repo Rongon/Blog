@@ -80,12 +80,15 @@ async function onSignIn() {
 }
 
 .in {
+  appearance: none;
   font-family: var(--font-sans);
   font-size: 13.5px;
   color: var(--muted);
   background: none;
   border: 0;
   padding: 0;
+  margin: 0;
+  line-height: inherit;
   cursor: pointer;
 
   &:hover {

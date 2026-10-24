@@ -38,9 +38,10 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
   scrollBehavior(to, _from, savedPosition) {
+    // 锚点跳转和快版保持一模一样（包括平滑滚动）—— 两版要只有性能差异。
     if (to.hash) {
       const id = decodeURIComponent(to.hash.slice(1))
-      return { el: `#${CSS.escape(id)}`, top: 88 }
+      return { el: `#${CSS.escape(id)}`, top: 88, behavior: 'smooth' }
     }
     if (savedPosition) return savedPosition
     return { top: 0 }

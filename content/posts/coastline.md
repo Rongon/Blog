@@ -5,7 +5,7 @@ category: 旅行
 tags: [摄影]
 date: 2026-01-05
 readingMinutes: 4
-cover: /images/covers/lake.webp
+cover: /images/photos/coast-12.webp
 ---
 
 出发那天是阴天，海是灰的。本来以为白跑一趟，结果走到下午四点多，云开了一条缝，光正好打在礁石上。

@@ -18,7 +18,6 @@ const DRY = process.argv.includes('--dry')
 
 const FIXED = [
   'src/data/posts.ts',
-  'src/data/projects.ts',
   'src/views/HomeView.vue',
 ]
 

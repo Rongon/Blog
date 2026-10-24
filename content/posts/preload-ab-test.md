@@ -5,7 +5,7 @@ category: 技术
 tags: [性能优化, Lighthouse, 预加载]
 date: 2026-04-20
 readingMinutes: 6
-cover: /images/covers/mountains.webp
+cover: /images/photos/coast-06.webp
 ---
 
 首页 `<head>` 里有两条 `preload`：一张题图、一份正文字体。

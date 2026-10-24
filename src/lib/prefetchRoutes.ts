@@ -17,11 +17,7 @@
  * 依赖，那时再下不算浪费。
  */
 
-const ROUTES = [
-  () => import('@/views/ProjectListView.vue'),
-  () => import('@/views/ArticleListView.vue'),
-  () => import('@/views/AboutView.vue'),
-]
+const ROUTES = [() => import('@/views/ArticleListView.vue')]
 
 let started = false
 

@@ -5,7 +5,7 @@ category: 技术
 tags: [设计, CSS, 工程实践]
 date: 2025-12-22
 readingMinutes: 6
-cover: /images/covers/night-sky.webp
+cover: /images/covers/lake.webp
 ---
 
 深色模式最省事的实现是 `filter: invert(1)`，或者把写死的颜色挨个换成反色。这两种出来的东西都很难看。

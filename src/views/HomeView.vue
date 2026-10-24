@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import PostCard from '@/components/PostCard.vue'
-import ProjectCard from '@/components/ProjectCard.vue'
 import ResponsiveImage from '@/components/ResponsiveImage.vue'
 import { getRecentPosts } from '@/data/posts'
-import { getFeaturedProjects } from '@/data/projects'
 import { prefetchRouteChunks } from '@/lib/prefetchRoutes'
 
 // 优化项 9：首页画完之后，趁空闲把「点进去会去的页面」提前下载好。
@@ -22,7 +20,6 @@ const WALL_SIZES =
   '(max-width: 899px) calc(100vw - 48px), (max-width: 1128px) calc((100vw - 104px) / 3), 325px'
 
 const recent = getRecentPosts(8)
-const featured = getFeaturedProjects(3)
 
 /**
  * 首页的照片墙。
@@ -44,14 +41,12 @@ const photos = [
 <template>
   <section class="hero">
     <div class="wrap">
-      <div class="kicker">前端工程师 · 2 年经验 · 广州</div>
-      <h1>把页面做快，把话说清楚。</h1>
+      <h1>我做大前端，也在做 AI 相关的东西。</h1>
       <p class="lede">
-        我做前端，也做性能优化。这个站点本身就是一个可测量的实验品——同一份内容，优化前和优化后各部署一版，数字都摆在明面上。
+        这个站点本身就是一个可测量的实验品——同一份内容，优化前和优化后各部署一版，数字都摆在明面上。
       </p>
       <div class="acts">
-        <RouterLink class="btn" to="/projects">看项目</RouterLink>
-        <RouterLink class="btn ghost" to="/articles">读文章</RouterLink>
+        <RouterLink class="btn" to="/articles">读文章</RouterLink>
       </div>
 
       <!-- 首屏题图（首页的 LCP 元素）。
@@ -88,20 +83,8 @@ const photos = [
   <section class="sec">
     <div class="wrap">
       <div class="sec-head">
-        <h2>做过的项目</h2>
-        <RouterLink to="/projects">全部项目 →</RouterLink>
-      </div>
-      <div class="grid cols-3">
-        <ProjectCard v-for="p in featured" :key="p.slug" :project="p" />
-      </div>
-    </div>
-  </section>
-
-  <section class="sec">
-    <div class="wrap">
-      <div class="sec-head">
-        <h2>最近拍的</h2>
-        <RouterLink to="/articles/coastline">那篇图集 →</RouterLink>
+        <h2>风景图片</h2>
+        <RouterLink to="/articles/coastline">图集 →</RouterLink>
       </div>
       <div class="grid cols-3 photos">
         <ResponsiveImage
@@ -128,10 +111,11 @@ const photos = [
   margin-bottom: 22px;
 }
 
+// 这句比原来的短句长，16em 会把它挤成两行、末行只剩两个字
 h1 {
   font-size: clamp(34px, 5vw, 52px);
   letter-spacing: -0.02em;
-  max-width: 16em;
+  max-width: 22em;
 }
 
 .lede {
@@ -206,7 +190,7 @@ h1 {
   }
 }
 
-/* 网格。三个区块（最近写的 / 做过的项目 / 最近拍的）共用同一套。 */
+/* 网格。两个区块（最近写的 / 风景图片）共用同一套。 */
 .grid {
   display: grid;
   gap: 28px;
@@ -220,10 +204,14 @@ h1 {
   grid-template-columns: repeat(2, 1fr);
 }
 
+/* 照片墙：9 张的原始比例各不相同（有横有竖），直接按原比例铺会变成一排参差不齐的
+   长短腿，行与行之间留下大片空白。统一裁成 4:3 —— 既整齐，也不用改动图片本身。
+   用 aspect-ratio + object-fit，容器高度先由 CSS 占住，图片到得晚也不会跳（CLS 不受影响）。 */
 .photos img {
   display: block;
   width: 100%;
-  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
   border: 1px solid var(--rule-soft);
 }
 

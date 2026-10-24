@@ -5,7 +5,7 @@ category: 技术
 tags: [性能优化, Lighthouse, 工程实践]
 date: 2026-03-18
 readingMinutes: 8
-cover: /images/covers/lake.webp
+cover: /images/photos/coast-02.webp
 ---
 
 第一次跑 Lighthouse，62 分。改了两行代码再跑，74 分。把这两行改回去，81 分。

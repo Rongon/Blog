@@ -58,9 +58,6 @@ function hasFilter() {
       <header class="head">
         <div class="kicker">共 {{ result.total }} 篇</div>
         <h1>文章</h1>
-        <p class="lede">
-          技术、旅行和读书。筛选条件会同步到地址栏——刷新、后退、把链接发给别人，看到的都是同一个视图。
-        </p>
       </header>
 
       <div class="toolbar">

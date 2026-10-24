@@ -32,11 +32,10 @@ watch(
   },
 )
 
+// 只剩两个入口：这个站点是技术博客，不放项目列表页，也没有「关于」页。
 const nav = [
   { to: '/', label: '首页' },
-  { to: '/projects', label: '项目' },
   { to: '/articles', label: '文章' },
-  { to: '/about', label: '关于' },
 ]
 
 /** 窄屏下的折叠菜单。<900px 时桌面导航是隐藏的，没有这个就没法在手机上换页面 */
@@ -54,7 +53,7 @@ watch(
 <template>
   <header class="top">
     <div class="top-in">
-      <RouterLink to="/" class="brand"> 曾泽龙<em>前端 · 广州</em> </RouterLink>
+      <RouterLink to="/" class="brand"> 曾泽龙<em>前端工程师</em> </RouterLink>
 
       <nav class="nav">
         <RouterLink v-for="item in nav" :key="item.to" :to="item.to">
@@ -64,7 +63,7 @@ watch(
 
       <!-- 快版 / 慢版开关不在导航栏里 —— 它固定在导航栏下方的右上角，
            见模板末尾的 <VersionSwitch /> 与 src/styles/version-switch.css。
-           放进导航栏会挤掉 首页/项目/文章/关于 这些真链接，观感也差。 -->
+           放进导航栏会挤掉 首页/文章 这些真链接，观感也差。 -->
 
       <!-- 登录态是异步的：本地有 session 才去装 AuthMenu（异步 chunk），
            否则当场渲染一个静态「登录」链接，Supabase SDK 一次都不下载。
@@ -103,12 +102,6 @@ watch(
   <main>
     <slot />
   </main>
-
-  <footer class="foot">
-    <div class="wrap">
-      曾泽龙 · 前端工程师 · 本站为个人技术博客，源码公开
-    </div>
-  </footer>
 </template>
 
 <style scoped lang="scss">
@@ -256,15 +249,6 @@ watch(
   }
 }
 
-.foot {
-  border-top: 1px solid var(--rule);
-  padding: 36px 0 64px;
-  margin-top: 64px;
-  color: var(--faint);
-  font-family: var(--font-sans);
-  font-size: 13px;
-}
-
 @include md-down {
   .top-in {
     gap: 14px;
@@ -302,11 +286,6 @@ watch(
   .burger {
     padding: 5px 9px;
     font-size: 12.5px;
-  }
-
-  .foot {
-    padding: 28px 0 48px;
-    margin-top: 48px;
   }
 }
 </style>

@@ -14,16 +14,16 @@
 import { createClient } from '@supabase/supabase-js'
 import { AUTH_STORAGE_KEY } from './authStorage'
 
-const url = import.meta.env.VITE_SUPABASE_URL
+export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-if (!url || !anonKey) {
+if (!SUPABASE_URL || !anonKey) {
   throw new Error(
     '缺少 VITE_SUPABASE_URL 或 VITE_SUPABASE_ANON_KEY。请检查项目根目录的 .env 文件。',
   )
 }
 
-export const supabase = createClient(url, anonKey, {
+export const supabase = createClient(SUPABASE_URL, anonKey, {
   auth: {
     // 登录状态存在 localStorage 里，刷新页面不用重新登录
     persistSession: true,

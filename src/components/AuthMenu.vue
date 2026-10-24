@@ -12,13 +12,34 @@
  * 「不管当前页面用不用得上登录态，启动时都要问一次服务器」。首页显然用不上。
  * 现在改成「谁渲染这个组件，谁负责初始化」，登录态真正被需要的时候才发生。
  */
+import { watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
+const router = useRouter()
 
 // 挂载即初始化（内部有 started 标志，重复调用不会重复请求）
 void auth.init()
+
+/**
+ * GitHub 授权回来时是**整页刷新**，Vue 里存的东西全没了。
+ * 所以「登录前想去哪一页」记在 sessionStorage 里，等登录态就绪后再送回去。
+ * 放在这个组件里而不是 App.vue：这个文件本来就是登录态专属的 chunk，
+ * 放进 App.vue 会把 Supabase 又拽回首页的入口包（优化项 8 刚把它摘出去）。
+ */
+watch(
+  () => auth.ready && auth.isLoggedIn,
+  (ok) => {
+    if (!ok) return
+    const next = sessionStorage.getItem('p2026:after-login')
+    if (!next) return
+    sessionStorage.removeItem('p2026:after-login')
+    void router.replace(next)
+  },
+  { immediate: true },
+)
 
 async function onSignOut() {
   await auth.signOut()

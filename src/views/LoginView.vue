@@ -3,6 +3,7 @@ import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
+import GitHubLoginButton from '@/components/GitHubLoginButton.vue'
 
 const auth = useAuthStore()
 const route = useRoute()
@@ -51,6 +52,10 @@ async function onSubmit() {
       <div class="kicker ui">登录</div>
       <h1>欢迎回来</h1>
       <p class="note">登录之后就能在文章下面留言了。没有账号的话，先去注册一个。</p>
+
+      <GitHubLoginButton />
+
+      <div class="or ui"><span>或 用邮箱</span></div>
 
       <el-form
         ref="formRef"
@@ -123,6 +128,27 @@ async function onSubmit() {
 .submit {
   width: 100%;
   margin-top: 6px;
+}
+
+.or {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 16px;
+  color: var(--faint);
+  font-size: 12.5px;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  span {
+    flex: none;
+  }
 }
 
 .switch {

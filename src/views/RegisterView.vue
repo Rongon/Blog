@@ -3,6 +3,7 @@ import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
+import GitHubLoginButton from '@/components/GitHubLoginButton.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -71,6 +72,10 @@ async function onSubmit() {
       <p class="note">
         评论要登录才能发，这样每条留言都有主人。密码由 Supabase 的登录服务保管，本站看不到明文。
       </p>
+
+      <GitHubLoginButton />
+
+      <div class="or ui"><span>或 填邮箱注册</span></div>
 
       <el-form
         ref="formRef"
@@ -156,6 +161,27 @@ async function onSubmit() {
 .submit {
   width: 100%;
   margin-top: 6px;
+}
+
+.or {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 16px;
+  color: var(--faint);
+  font-size: 12.5px;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  span {
+    flex: none;
+  }
 }
 
 .switch {

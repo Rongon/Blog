@@ -18,7 +18,7 @@
 
 import MarkdownIt from 'markdown-it'
 import { createHighlighter, type Highlighter } from 'shiki'
-import { readFileSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
 import type { Plugin } from 'vite'
 import type { PostFrontmatter, TocItem } from '../src/types/content'
 
@@ -135,7 +135,16 @@ function makeSlug(text: string, used: Set<string>): string {
   return id
 }
 
-export default function markdownPlugin(): Plugin {
+export default function markdownPlugin(options: { naive?: boolean } = {}): Plugin {
+  /**
+   * 慢版（优化前）构建时为 true。
+   *
+   * 只影响正文图片：不生成 srcset / sizes / width / height，也不加懒加载，
+   * 图片直接指回 raw-images 里的原图（构建慢版时会拷到 dist-naive/images）。
+   * 其余的解析、高亮、目录逻辑两边完全一样 —— 慢版不是另一个站点。
+   */
+  const naive = options.naive === true
+
   return {
     name: 'program2026:markdown',
 
@@ -208,6 +217,20 @@ export default function markdownPlugin(): Plugin {
       md.renderer.rules.image = (tokens, idx, options, env, self) => {
         const token = tokens[idx]
         const srcIndex = token.attrIndex('src')
+
+        // 慢版：图片就是一张原图，别的什么都不给（这是优化项 2/3/4 之前的样子）
+        if (naive) {
+          if (srcIndex >= 0 && token.attrs) {
+            const raw = token.attrs[srcIndex][1]
+            // 有原图的（照片、封面）换回 .jpg —— 慢版跑的就是这些 3000px 的大图。
+            // 没有原图的（正文里那些由 scripts/build-charts.mjs 生成的图表）保持 .webp：
+            // 它们是内容本身，不是被优化的素材，没有「优化前」的那一份。
+            const original = raw.replace(/\.webp$/i, '.jpg')
+            const hasOriginal = existsSync(new URL(`../raw-images${original}`, import.meta.url))
+            token.attrs[srcIndex][1] = withBase(hasOriginal ? original : raw)
+          }
+          return renderImage(tokens, idx, options, env, self)
+        }
 
         if (srcIndex >= 0 && token.attrs) {
           const raw = token.attrs[srcIndex][1]

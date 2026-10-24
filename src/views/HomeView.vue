@@ -48,9 +48,6 @@ const photos = [
       <p class="lede">
         这个站点本身就是一个可测量的实验品——同一份内容，优化前和优化后各部署一版，数字都摆在明面上。
       </p>
-      <div class="acts">
-        <RouterLink class="btn" to="/articles">读文章</RouterLink>
-      </div>
 
       <!-- 首屏题图（首页的 LCP 元素）。
            已经有 srcset（手机不会再下这张 3000px 的图）；
@@ -140,42 +137,6 @@ h1 {
   color: var(--muted);
   font-size: 18px;
   line-height: 1.85;
-}
-
-.acts {
-  margin-top: 34px;
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.btn {
-  font-family: var(--font-sans);
-  font-size: 14px;
-  padding: 11px 20px;
-  border-radius: var(--radius);
-  border: 1px solid var(--ink);
-  background: var(--ink);
-  color: var(--bg);
-  cursor: pointer;
-
-  &:hover {
-    opacity: 0.86;
-    color: var(--bg);
-    border-bottom-color: var(--ink);
-  }
-
-  &.ghost {
-    background: none;
-    color: var(--ink);
-    border-color: var(--rule);
-
-    &:hover {
-      border-color: var(--ink);
-      opacity: 1;
-      color: var(--ink);
-    }
-  }
 }
 
 /* 首屏题图。

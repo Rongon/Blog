@@ -55,7 +55,7 @@ watch(
 <template>
   <header class="top">
     <div class="top-in">
-      <RouterLink to="/" class="brand"> 曾泽龙<em>前端工程师</em> </RouterLink>
+      <RouterLink to="/" class="brand"> 曾泽龙<em>AI 前端工程师</em> </RouterLink>
 
       <nav class="nav">
         <RouterLink v-for="item in nav" :key="item.to" :to="item.to">

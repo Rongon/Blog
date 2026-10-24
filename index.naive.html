@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="曾泽龙 · 前端工程师 · 个人技术博客" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- 主题要在第一帧之前生效，否则深色模式用户每次刷新都先看到一片白。见 index.html 的说明。 -->
+    <script>
+      try {
+        var t = localStorage.getItem('p2026:theme')
+        if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t)
+      } catch (e) {
+        /* 隐私模式下 localStorage 不可用，保持默认浅色即可 */
+      }
+    </script>
+    <!--
+      这是慢版的 HTML 入口。和 index.html 的唯一差别：**没有那两条 preload**。
+
+      预加载是优化项 9，属于「优化前不存在」的东西，所以慢版这里必须是空的。
+      除此之外，标题、图标、主题脚本都和快版逐字一致 —— 慢版要的是同一份内容，
+      只有实现更旧。
+    -->
+    <title>曾泽龙 · 前端工程师</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.naive.ts"></script>
+  </body>
+</html>

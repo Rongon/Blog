@@ -321,23 +321,33 @@ watch(
   }
 }
 
-/* 折叠菜单：宽屏不显示，展开时从顶栏下面滑出来 */
+/* 折叠菜单：宽屏不显示。窄屏下是一个浮在右上角的小面板 ——
+   绝对定位，不参与文档流，所以不会把下面的内容往下推，只是盖住右上角一小块。 */
 .menu {
   display: none;
+  position: absolute;
+  top: 100%;
+  right: 16px;
+  z-index: 30;
   flex-direction: column;
-  border-top: 1px solid var(--rule-soft);
+  width: 168px;
+  margin-top: -6px;
+  padding: 4px 0;
   background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 
   a {
     font-family: var(--font-sans);
-    font-size: 15px;
+    font-size: 14px;
     color: var(--muted);
-    padding: 14px 24px;
-    border-bottom: 1px solid var(--rule-soft);
+    padding: 10px 14px;
+    border-bottom: 0;
 
     &:hover {
       color: var(--ink);
-      border-bottom-color: var(--rule-soft);
+      background: var(--rule-soft);
     }
 
     &.router-link-exact-active {
@@ -379,6 +389,11 @@ watch(
   .tgl {
     padding: 5px 9px;
     font-size: 12.5px;
+  }
+
+  .menu {
+    right: 12px;
+    width: 156px;
   }
 }
 </style>

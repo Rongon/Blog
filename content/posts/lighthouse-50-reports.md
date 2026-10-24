@@ -55,7 +55,7 @@ FCP 也一样。同一份构建，我见过 630 ms，也见过 1,314 ms，差一
 ```bash
 # 每次都用一个全新的用户目录，跑完删掉
 for i in 1 2 3 4 5; do
-  npx lighthouse https://rongon.github.io/Program2026/ \
+  npx lighthouse https://rongon.github.io/Blog/ \
     --preset=desktop \
     --output=json \
     --output-path=./perf/cold-fast-run$i.json \

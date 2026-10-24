@@ -8,9 +8,9 @@ const srcDir = fileURLToPath(new URL('./src', import.meta.url))
 /**
  * 三个 build mode：
  *
- *   （默认）本地 dev / preview        base = '/'            快版
- *   ghpages                           base = '/Program2026/' 快版，线上用
- *   naive                             base = '/Program2026/naive/'  慢版（优化前）
+ *   （默认）本地 dev / preview        base = '/'          优化后
+ *   ghpages                           base = '/Blog/'     优化后，线上用
+ *   naive                             base = '/Blog/naive/'  优化前
  *
  * 【为什么慢版改成「同一份源码 + 另一个 mode」，不再用 v0-naive 那个 tag】
  * 以前慢版是 tag 的构建产物 —— 代价是它的文案和结构停在了优化前的某一天，
@@ -21,7 +21,7 @@ const srcDir = fileURLToPath(new URL('./src', import.meta.url))
 export default defineConfig(({ mode }) => {
   const naive = mode === 'naive'
 
-  const base = mode === 'ghpages' ? '/Program2026/' : naive ? '/Program2026/naive/' : '/'
+  const base = mode === 'ghpages' ? '/Blog/' : naive ? '/Blog/naive/' : '/'
 
   return {
     /**

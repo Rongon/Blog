@@ -11,7 +11,7 @@
  * 「慢版才会走的路」—— 说起来小事，但对照实验里能不引入差异就不引入。
  */
 
-/** 从 /Program2026/naive/ 去掉尾部的 naive/，得到快版首页 /Program2026/ */
+/** 从 /Blog/naive/ 去掉尾部的 naive/，得到优化后首页 /Blog/ */
 const fastHref = import.meta.env.BASE_URL.replace(/naive\/$/, '')
 </script>
 

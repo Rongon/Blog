@@ -7,7 +7,7 @@
  *
  * 慢版的路径规则：raw-images/photos/coast-10.jpg → dist-naive/images/photos/coast-10.jpg
  * 页面里的地址是 `/images/photos/coast-10.jpg`，加上 naive 的 base 就是
- * `/Program2026/naive/images/photos/coast-10.jpg` —— 正好对上。
+ * `/Blog/naive/images/photos/coast-10.jpg` —— 正好对上。
  *
  * 用法：node scripts/copy-naive-images.mjs [distDir]
  * 默认 distDir = dist-naive

@@ -12,8 +12,8 @@ cover: /images/covers/waterfall.webp
 
 | 路径 | 是什么 |
 | --- | --- |
-| `/Program2026/` | 主站，当前代码 |
-| `/Program2026/naive/` | `v0-naive` 那个 tag 的构建产物，也就是性能优化之前的版本 |
+| `/Blog/` | 主站，当前代码 |
+| `/Blog/naive/` | `v0-naive` 那个 tag 的构建产物，也就是性能优化之前的版本 |
 
 为什么要留着优化前：性能优化的结论是「从 A 变成 B」，只给你看 B 是没有说服力的。两个版本摆在同一个域名下，点开就能自己跑一遍。
 
@@ -68,7 +68,7 @@ sed -i 's|url(/fonts/|url(../fonts/|g' naive-tree/dist/assets/*.css
 
 ## base 只改一个参数就够
 
-优化前的 `base` 是 `/Program2026/naive/`，因为它的路由、图片、静态资源都挂在这个前缀下。
+优化前的 `base` 是 `/Blog/naive/`，因为它的路由、图片、静态资源都挂在这个前缀下。
 
 能只改一个参数，是因为 `v0-naive` 里的图片地址走了一个小函数：
 
@@ -89,7 +89,7 @@ export const asset = (p: string) => `${import.meta.env.BASE_URL}${p.replace(/^\/
 所以开关是在**部署产物**里注入的：
 
 ```bash
-node scripts/inject-version-switch.mjs naive-tree/dist /Program2026/
+node scripts/inject-version-switch.mjs naive-tree/dist /Blog/
 ```
 
 它读 `src/styles/version-switch.css`（和主站用的是**同一个文件**），把样式内联进 `</body>` 前，再插入一段和主站结构一致的 HTML。优化前的源码目录里没有这个文件。

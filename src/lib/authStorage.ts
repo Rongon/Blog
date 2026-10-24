@@ -26,3 +26,23 @@ export function hasStoredSession(): boolean {
     return false
   }
 }
+
+/**
+ * 这个页面是不是刚被 OAuth 回调打回来。
+ *
+ * 【为什么需要它 —— 这是一个真 bug 的补丁】
+ * 优化项 8 为了把 Supabase 摘出首屏包，顶栏改成「localStorage 里有 session 才装登录组件」。
+ * 但 OAuth 回调返回的那一瞬间，session **还没写进 localStorage**：它躺在 URL 里
+ * （`#access_token=...` 或 PKCE 的 `?code=...`），要等 SDK 的 `detectSessionInUrl`
+ * 跑起来才会被解析并存下来。而 SDK 只有在登录组件被装上时才会被加载。
+ * 于是两个条件互相等对方：没 session 不装组件 → 不装组件就不解析 URL → 永远没 session。
+ * 表现就是：点登录能去 GitHub、也能回来，但回来后顶栏还是「登录」。
+ *
+ * 所以判断条件要放宽成「有 session **或** 这是一个 OAuth 回调页」。
+ */
+export function hasOAuthCallback(
+  href: string = typeof location === 'undefined' ? '' : location.href
+): boolean {
+  // authorization code 走 ?code=；implicit 流和错误回跳走 #access_token= / #error_description=
+  return /[#?&](access_token|refresh_token|code|error_description|error_code)=/.test(href)
+}

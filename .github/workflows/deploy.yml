@@ -9,8 +9,8 @@
 # 仓库 Settings → Pages → Source 选 **GitHub Actions**。只做一次。
 #
 # 【一次部署发布两套站点】
-#   /Program2026/        ← 主站（优化后）
-#   /Program2026/naive/  ← 慢版（优化前），用来看对比
+#   /Blog/        ← 主站（优化后）
+#   /Blog/naive/  ← 慢版（优化前），用来看对比
 # 两套在同一个产物里，所以同源、同一份 404 回退、同一次发布。
 #
 # 【慢版怎么做出来的：同一份源码，换一个 build mode】
@@ -59,7 +59,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # --mode ghpages 会走到 vite.config.ts 里那个分支，
-      # 把 base 从 '/' 换成 '/Program2026/'。
+      # 把 base 从 '/' 换成 '/Blog/'。
       - name: 构建
         run: pnpm build --mode ghpages
 

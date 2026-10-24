@@ -41,8 +41,8 @@ export interface ProjectMeta {
 
 export const projects: ProjectMeta[] = [
   {
-    slug: 'program2026',
-    name: 'Program2026 · 技术博客与性能实验',
+    slug: 'blog',
+    name: 'Blog · 技术博客与性能实验',
     tagline: '本站。同一份内容，优化前后各部署一版，数字摊开给人看。',
     summary:
       '一个纯前端的技术博客：Markdown 在构建时编译成页面，评论区用乐观更新保证即时反馈，图片、缓存与分包策略都做过实测对照。',
@@ -50,12 +50,12 @@ export const projects: ProjectMeta[] = [
     period: '2026.10 - 至今',
     stack: ['Vue 3', 'TypeScript', 'Vite', 'Pinia', 'Markdown-it', 'Shiki'],
     thumb: '/images/covers/forest-sun.webp',
-    to: '/projects/program2026',
+    to: '/projects/blog',
     highlights: [
       '构建时把 Markdown 编译成 HTML，客户端不下载任何解析器',
       '站内提供「优化前 / 优化后」两个入口，可现场对照首屏指标',
     ],
-    links: [{ label: '源码仓库', href: 'https://github.com/Rongon/Program2026' }],
+    links: [{ label: '源码仓库', href: 'https://github.com/Rongon/Blog' }],
     sections: [
       {
         heading: '这个站想解决什么问题',

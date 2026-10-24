@@ -8,7 +8,7 @@
  * 正确的地址是 `<前缀>/images/photos/a.jpg`。
  *
  * 【前缀是哪来的】
- * Vite 的 `base` 配置。本地开发是 `/`，部署到 Pages 时是 `/Program2026/`。
+ * Vite 的 `base` 配置。本地开发是 `/`，部署到 Pages 时是 `/Blog/`。
  * 它在构建时被注入到 `import.meta.env.BASE_URL`，所以这里可以直接读。
  *
  * 【哪些地方需要它】

@@ -31,12 +31,12 @@ const LANGS = [
 let highlighterPromise: Promise<Highlighter> | null = null
 
 /**
- * 最终生效的 base（本地是 `/`，GitHub Pages 子路径部署时是 `/Program2026/`）。
+ * 最终生效的 base（本地是 `/`，GitHub Pages 子路径部署时是 `/Blog/`）。
  * 由下面的 configResolved 钩子写入，用来给正文里的图片补上前缀。
  */
 let base = '/'
 
-/** 给站点内的绝对路径补上 base。/images/a.webp → /Program2026/images/a.webp */
+/** 给站点内的绝对路径补上 base。/images/a.webp → /Blog/images/a.webp */
 function withBase(path: string): string {
   if (!path.startsWith('/') || path.startsWith('//')) return path
   return `${base.replace(/\/+$/, '')}${path}`
@@ -146,7 +146,7 @@ export default function markdownPlugin(options: { naive?: boolean } = {}): Plugi
   const naive = options.naive === true
 
   return {
-    name: 'program2026:markdown',
+    name: 'blog:markdown',
 
     // 必须抢在 Vite 核心插件之前处理，
     // 否则 .md 会被当成 JS 去解析然后报错。
@@ -154,7 +154,7 @@ export default function markdownPlugin(options: { naive?: boolean } = {}): Plugi
 
     /**
      * 拿到最终的 base。
-     * GitHub Pages 是子路径部署（`/Program2026/`），正文里写死的 `/images/x.jpg`
+     * GitHub Pages 是子路径部署（`/Blog/`），正文里写死的 `/images/x.jpg`
      * 到线上会少一层前缀变成 404，所以这里得提前知道 base，在生成 HTML 时就补上。
      */
     configResolved(config) {

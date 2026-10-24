@@ -31,7 +31,7 @@ cover: /images/covers/forest-sun.webp
 ```ts
 export default function markdownPlugin(): Plugin {
   return {
-    name: 'program2026:markdown',
+    name: 'blog:markdown',
     enforce: 'pre', // 见下一节，这行是必须的
 
     async transform(src, id) {
@@ -112,7 +112,7 @@ md.renderer.rules.image = (tokens, idx, options, env, self) => {
 }
 ```
 
-第 3 条是这个站特有的坑：GitHub Pages 是子路径部署（`/Program2026/`），Markdown 里写 `/images/x.webp` 到线上就少一层前缀，直接 404。所以在构建时把 `config.base` 拿到手，统一补上。
+第 3 条是这个站特有的坑：GitHub Pages 是子路径部署（`/Blog/`），Markdown 里写 `/images/x.webp` 到线上就少一层前缀，直接 404。所以在构建时把 `config.base` 拿到手，统一补上。
 
 第 1、2 条就是性能优化那两项在正文里的落地 —— 图片优化不只是首页，正文里的图同样是大头。
 

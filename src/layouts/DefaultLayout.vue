@@ -2,7 +2,7 @@
 import { defineAsyncComponent, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useTheme } from '@/composables/useTheme'
-import { hasStoredSession } from '@/lib/authStorage'
+import { hasOAuthCallback, hasStoredSession } from '@/lib/authStorage'
 import VersionSwitch from '@/components/VersionSwitch.vue'
 
 const { theme, toggleTheme } = useTheme()
@@ -46,14 +46,16 @@ async function onSignIn() {
   }
 }
 
-const hasSession = ref(hasStoredSession())
+// 两种情况要装登录组件：本地已有 session，或者这一页是 OAuth 回调（token 还在 URL 里，
+// 必须让 SDK 跑起来把它解析掉）。后者不加的话，登录回来会永远停在「登录」两个字上。
+const hasSession = ref(hasStoredSession() || hasOAuthCallback())
 
-// 登录 / 注册成功都是以「跳转」收尾的，路由一变就重新看一眼本地 session。
+// 登录成功是以「跳转」收尾的，路由一变就重新看一眼本地 session。
 // 没有这一句，登录回来之后顶栏会一直卡在「登录」两个字上。
 watch(
   () => route.fullPath,
   () => {
-    hasSession.value = hasStoredSession()
+    hasSession.value = hasStoredSession() || hasOAuthCallback()
   },
 )
 

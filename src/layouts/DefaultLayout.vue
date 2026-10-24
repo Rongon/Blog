@@ -60,23 +60,14 @@ watch(
 )
 
 // 四个入口。项目只放站点自己那一个（见 src/data/projects.ts 的说明）。
+// 窄屏不再折叠成「菜单」：栏目条直接留在顶栏上（见下面 sm-down 的两行布局），
+// 手机上也能一眼看见 首页/项目/文章/关于 —— 藏进汉堡菜单等于让人找不到。
 const nav = [
   { to: '/', label: '首页' },
   { to: '/projects', label: '项目' },
   { to: '/articles', label: '文章' },
   { to: '/about', label: '关于' },
 ]
-
-/** 窄屏下的折叠菜单。<900px 时桌面导航是隐藏的，没有这个就没法换页面 */
-const menuOpen = ref(false)
-
-// 点了菜单里的链接就自动收起，否则跳完页面菜单还挂着
-watch(
-  () => route.fullPath,
-  () => {
-    menuOpen.value = false
-  },
-)
 </script>
 
 <template>
@@ -105,23 +96,7 @@ watch(
       <button class="tgl" type="button" @click="toggleTheme">
         {{ theme === 'dark' ? '浅色模式' : '深色模式' }}
       </button>
-
-      <button
-        class="burger"
-        type="button"
-        :aria-expanded="menuOpen"
-        aria-controls="site-menu"
-        @click="menuOpen = !menuOpen"
-      >
-        {{ menuOpen ? '关闭' : '菜单' }}
-      </button>
     </div>
-
-    <nav id="site-menu" class="menu" :class="{ open: menuOpen }">
-      <RouterLink v-for="item in nav" :key="item.to" :to="item.to">
-        {{ item.label }}
-      </RouterLink>
-    </nav>
   </header>
 
   <!-- 优化后 / 优化前开关。fixed 定位在导航栏下方右上角，所以放在文档哪个位置都不影响视觉 ——
@@ -250,84 +225,54 @@ watch(
   }
 }
 
-/* 汉堡按钮：宽屏不显示 */
-.burger {
-  display: none;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  color: var(--muted);
-  background: none;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  padding: 6px 12px;
-  cursor: pointer;
-
-  &:hover {
-    color: var(--ink);
-    border-color: var(--ink);
-  }
-}
-
-/* 折叠菜单：宽屏不显示，展开时从顶栏下面滑出来 */
-.menu {
-  display: none;
-  flex-direction: column;
-  border-top: 1px solid var(--rule-soft);
-  background: var(--bg);
-
-  a {
-    font-family: var(--font-sans);
-    font-size: 15px;
-    color: var(--muted);
-    padding: 14px 24px;
-    border-bottom: 1px solid var(--rule-soft);
-
-    &:hover {
-      color: var(--ink);
-      border-bottom-color: var(--rule-soft);
-    }
-
-    &.router-link-exact-active {
-      color: var(--ink);
-    }
-  }
-}
+/* 窄屏不再有折叠菜单。原来的写法是 <900px 藏掉导航、给一个「菜单」按钮 ——
+   结果是手机上根本看不见 首页/项目/文章/关于，读者只能滚到页脚去猜。
+   现在改成：600–899px 仍是一行（放得下），≤599px 折成两行，栏目条独占第二行。 */
 
 @include md-down {
   .top-in {
-    gap: 14px;
+    gap: 16px;
     padding: 0 16px;
   }
 
   .nav {
-    display: none;
-  }
+    gap: 16px;
 
-  .burger {
-    display: block;
-  }
-
-  .menu.open {
-    display: flex;
-  }
-
-  .auth {
-    margin-left: auto;
+    a {
+      font-size: 13.5px;
+    }
   }
 }
 
 @include sm-down {
-  .brand em {
-    display: none;
-  }
-
   .top-in {
-    gap: 10px;
-    padding: 0 12px;
+    height: auto;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    padding: 10px 16px 0;
   }
 
-  .tgl,
-  .burger {
+  /* 第二行：栏目条。铺满整行、四等分，比挤在右边更像报纸的栏目条 */
+  .nav {
+    order: 3;
+    width: 100%;
+    margin: 6px 0 0;
+    justify-content: space-between;
+    gap: 0;
+    padding: 9px 0 10px;
+    border-top: 1px solid var(--rule-soft);
+
+    a {
+      font-size: 14px;
+    }
+  }
+
+  /* 品牌 + 登录 + 主题挤在第一行，登录往右靠 */
+  .auth {
+    margin-left: auto;
+  }
+
+  .tgl {
     padding: 5px 9px;
     font-size: 12.5px;
   }

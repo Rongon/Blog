@@ -63,3 +63,12 @@
     padding: 4px 7px;
   }
 }
+
+/* ≤599px 时顶栏折成了两行（品牌行 + 栏目条），高度约 100px。
+   开关原来 fixed 在 68px 处会正好压在栏目条上，所以往下让。 */
+@media (max-width: 599px) {
+  .vsw {
+    top: 112px;
+    right: 16px;
+  }
+}

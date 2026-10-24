@@ -32,9 +32,10 @@ watch(
   },
 )
 
-// 三个入口：首页、文章列表、关于。项目列表页不做了（只留文章）。
+// 四个入口。项目只放站点自己那一个（见 src/data/projects.ts 的说明）。
 const nav = [
   { to: '/', label: '首页' },
+  { to: '/projects', label: '项目' },
   { to: '/articles', label: '文章' },
   { to: '/about', label: '关于' },
 ]
@@ -177,9 +178,11 @@ watch(
   gap: 10px;
   font-family: var(--font-sans);
   font-size: 13.5px;
-  /* 「昵称 + 退出」的宽度上限（96 + 10 + 约 26），先占住。
-     占位不动，登录态加载完就不会有横向位移 —— 这是这一项守住 CLS=0 的关键。 */
-  min-width: 132px;
+  /* 这里原来写的是 min-width: 132px（给「昵称 + 退出」预留宽度，防登录态切换时顶栏跳动）。
+     现在改成不预留：预留在未登录时会在「登录」和「浅色模式」之间留一大块空白，
+     和顶部导航挤在右边的手感对不上。未登录访客本来就不会挂载 AuthMenu
+     （见上面 hasStoredSession 的同步判断），所以他们看到的顶栏永远是稳定的，CLS 不受影响。 */
+  min-width: 0;
 
   .in {
     color: var(--muted);

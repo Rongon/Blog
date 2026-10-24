@@ -115,7 +115,7 @@ function hasFilter() {
 
       <div class="list" :class="{ busy: loading }">
         <article v-for="post in result.items" :key="post.slug" class="row">
-          <div class="kicker">{{ post.category }} · {{ post.date }} · {{ post.readingMinutes }} 分钟</div>
+          <div class="kicker">{{ post.category }} · {{ post.date }}</div>
           <h2>
             <RouterLink :to="`/articles/${post.slug}`">{{ post.title }}</RouterLink>
           </h2>

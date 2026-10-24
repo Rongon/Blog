@@ -20,7 +20,7 @@ const skills: { group: string; items: string[] }[] = [
 const timeline = [
   {
     period: '2023 - 至今',
-    title: '前端开发 · 广州',
+    title: '前端开发',
     note: '中后台系统、企业内部低代码搭建平台；团队里负责页面搭建与物料组件。',
   },
   {
@@ -37,7 +37,7 @@ const timeline = [
       <div class="kicker">关于</div>
       <h1>你好，我是曾泽龙。</h1>
           <p class="lede">
-        前端工程师，两年经验，在<strong>广州</strong>。日常工作写中后台，也做内部低代码平台。这个站点是我自己搭的，用来放文章。
+        前端工程师，两年经验。日常工作写中后台，也做内部低代码平台。这个站点是我自己搭的，用来放文章。
       </p>
     </div>
   </section>

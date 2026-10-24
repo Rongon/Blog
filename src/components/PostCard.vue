@@ -22,7 +22,6 @@ withDefaults(defineProps<{ post: PostMeta; sizes?: string }>(), {
       <div class="meta ui">
         <span class="tag">{{ post.category }}</span>
         <span>{{ post.date }}</span>
-        <span>{{ post.readingMinutes }} 分钟</span>
       </div>
     </div>
   </article>

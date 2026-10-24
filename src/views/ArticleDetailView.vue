@@ -67,8 +67,7 @@ onBeforeUnmount(() => observer?.disconnect())
       <div class="cols">
         <article class="main">
           <div class="kicker ui">
-            {{ detail.meta.category }} · {{ detail.meta.date }} ·
-            {{ detail.meta.readingMinutes }} 分钟
+            {{ detail.meta.category }} · {{ detail.meta.date }}
           </div>
           <h1>{{ detail.meta.title }}</h1>
           <p class="lede">{{ detail.meta.summary }}</p>

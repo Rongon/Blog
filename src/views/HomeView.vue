@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import PostCard from '@/components/PostCard.vue'
+import ProjectCard from '@/components/ProjectCard.vue'
 import ResponsiveImage from '@/components/ResponsiveImage.vue'
 import { getRecentPosts } from '@/data/posts'
+import { getFeaturedProjects } from '@/data/projects'
 import { prefetchRouteChunks } from '@/lib/prefetchRoutes'
 
 // 优化项 9：首页画完之后，趁空闲把「点进去会去的页面」提前下载好。
@@ -20,6 +22,7 @@ const WALL_SIZES =
   '(max-width: 899px) calc(100vw - 48px), (max-width: 1128px) calc((100vw - 104px) / 3), 325px'
 
 const recent = getRecentPosts(8)
+const featured = getFeaturedProjects(1)
 
 /**
  * 首页的照片墙。
@@ -76,6 +79,19 @@ const photos = [
            优化前的封面是 3000px 的原始 JPG，显示宽度却有 500px —— 这批图会一张一张慢慢挤进来。 -->
       <div class="grid cols-2">
         <PostCard v-for="p in recent" :key="p.slug" :post="p" />
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>做过的项目</h2>
+        <RouterLink to="/projects">全部项目 →</RouterLink>
+      </div>
+      <!-- 只有一个项目，按行排（封面在左、正文在右），不要三列卡片留两个空格子 -->
+      <div class="grid cols-1">
+        <ProjectCard v-for="p in featured" :key="p.slug" :project="p" />
       </div>
     </div>
   </section>
@@ -204,6 +220,19 @@ h1 {
   grid-template-columns: repeat(2, 1fr);
 }
 
+/* 单项目那条：让卡片横过来（封面左、正文右），而不是一张竖卡占满 1032px */
+.cols-1 {
+  grid-template-columns: 1fr;
+
+  :deep(.pcard) {
+    flex-direction: row;
+  }
+
+  :deep(.thumb) {
+    flex: 0 0 360px;
+  }
+}
+
 /* 照片墙：9 张的原始比例各不相同（有横有竖），直接按原比例铺会变成一排参差不齐的
    长短腿，行与行之间留下大片空白。统一裁成 4:3 —— 既整齐，也不用改动图片本身。
    用 aspect-ratio + object-fit，容器高度先由 CSS 占住，图片到得晚也不会跳（CLS 不受影响）。 */
@@ -219,6 +248,15 @@ h1 {
   .cols-3,
   .cols-2 {
     grid-template-columns: 1fr;
+  }
+
+  /* 窄屏放不下 360px 的横向封面，卡片转回竖排 */
+  .cols-1 :deep(.pcard) {
+    flex-direction: column;
+  }
+
+  .cols-1 :deep(.thumb) {
+    flex: none;
   }
 
   .grid {

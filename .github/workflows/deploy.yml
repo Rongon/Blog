@@ -93,6 +93,13 @@ jobs:
           mkdir -p dist/naive
           cp -r dist-naive/. dist/naive/
 
+      # 两版一致性检查：优化后 /Blog/ 与优化前 /Blog/naive/ 的**静态文字必须逐字相同**
+      # （评论区除外 —— 它读线上真实数据，谁先留了言两边就会不一样）。
+      # 不一致就让这次发布失败：宁可不发，也不发一个「差异不只是性能」的对照版，
+      # 否则整个对照实验的说服力就没了。脚本零依赖，用 runner 自带的 Chrome。
+      - name: 两版一致性检查
+        run: pnpm check:parity
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

@@ -86,7 +86,7 @@ function frame(height, body) {
   </svg>`
 }
 
-/* ---------- 图 1：慢版 vs 快版，首屏传输构成 ---------- */
+/* ---------- 图 1：优化前 vs 优化后，首屏传输构成 ---------- */
 
 function chartTransfer(slow, fast) {
   const H = 540
@@ -103,12 +103,12 @@ function chartTransfer(slow, fast) {
   ]
 
   const rows = [
-    { y: 210, h: 76, name: '慢版', data: slow, note: 'v0-naive' },
-    { y: 330, h: 76, name: '快版', data: fast, note: '当前线上' },
+    { y: 210, h: 76, name: '优化前', data: slow, note: 'v0-naive' },
+    { y: 330, h: 76, name: '优化后', data: fast, note: '当前线上' },
   ]
 
   let body = ''
-  body += text(120, 74, '首屏传输构成：慢版 vs 快版', { size: 30, weight: 700 })
+  body += text(120, 74, '首屏传输构成：优化前 vs 优化后', { size: 30, weight: 700 })
   body += text(120, 108, '同一份内容、同一台机器、冷缓存。单位 MB，数字取 5 次中位数。', {
     size: 19,
     fill: C.muted,
@@ -228,8 +228,8 @@ function chartRuns(fastRuns, slowRuns) {
   }
 
   const draws = [
-    { runs: slowRuns, fill: C.clay, name: '慢版', label: true },
-    { runs: fastRuns, fill: C.data, name: '快版', label: true },
+    { runs: slowRuns, fill: C.clay, name: '优化前', label: true },
+    { runs: fastRuns, fill: C.data, name: '优化后', label: true },
   ]
 
   for (const d of draws) {
@@ -250,7 +250,7 @@ function chartRuns(fastRuns, slowRuns) {
   }
 
   body += line(left, 480, WIDTH - 120, 480)
-  body += text(120, 512, '慢版 38–52 分（中位 46），快版 94–97 分（中位 95）。区间本身就是结论的一部分。', {
+  body += text(120, 512, '优化前 38–52 分（中位 46），优化后 94–97 分（中位 95）。区间本身就是结论的一部分。', {
     size: 18,
   })
   body += text(120, 540, '数据来源：perf/cold-*-run1…5.json', { size: 16, fill: C.muted })
@@ -539,6 +539,6 @@ await writeFile(MANIFEST, JSON.stringify(manifest, null, 2) + '\n')
 }
 
 console.log('\n数字核对：')
-console.log(`  慢版首屏 ${Math.round(slow.total)} KiB（图片 ${Math.round(slow.image)}）`)
-console.log(`  快版首屏 ${Math.round(fast.total)} KiB（图片 ${Math.round(fast.image)}）`)
+console.log(`  优化前首屏 ${Math.round(slow.total)} KiB（图片 ${Math.round(slow.image)}）`)
+console.log(`  优化后首屏 ${Math.round(fast.total)} KiB（图片 ${Math.round(fast.image)}）`)
 console.log(`  基线首屏 ${Math.round(base.total)} KiB`)

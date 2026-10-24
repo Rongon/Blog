@@ -8,6 +8,7 @@
 
 const contact = [
   { label: 'GitHub', value: 'github.com/Rongon', href: 'https://github.com/Rongon' },
+  { label: '邮箱', value: '13035813904@163.com', href: 'mailto:13035813904@163.com' },
 ]
 
 const skills: { group: string; items: string[] }[] = [

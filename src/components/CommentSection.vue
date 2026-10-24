@@ -218,7 +218,7 @@ function formatTime(iso: string): string {
     </div>
 
     <div v-else class="needlogin">
-      <p>评论需要先登录，这样每条留言都有主人，也能自己删掉自己的。</p>
+      <p>评论需要先登录。</p>
       <RouterLink :to="loginLink">
         <el-button type="primary" plain>去登录 / 注册</el-button>
       </RouterLink>

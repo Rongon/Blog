@@ -8,10 +8,6 @@ readingMinutes: 7
 cover: /images/covers/night-sky.webp
 ---
 
-先摆一个数字：这个项目里，`Pick`、`Omit`、`ReturnType`、`Extract` 的用量都是 **0**。`Record` 用了 7 次，`Partial` 3 次。
-
-所以这篇文章不是「五个高级类型工具」。那种文章的问题是：里面没有一个例子是作者真踩过的坑。
-
 这篇讲的是**类型在这个项目里到底拦住了什么**，以及它在哪两个地方一声不响地放过了我。
 
 ![类型能证明的三层：形状、契约、业务](/images/tech/types-three-layers.webp)

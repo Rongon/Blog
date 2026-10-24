@@ -63,7 +63,7 @@ watch(
         </RouterLink>
       </nav>
 
-      <!-- 快版 / 慢版开关不在导航栏里 —— 它固定在导航栏下方的右上角，
+      <!-- 优化后 / 优化前开关不在导航栏里 —— 它固定在导航栏下方的右上角，
            见模板末尾的 <VersionSwitch /> 与 src/styles/version-switch.css。
            放进导航栏会挤掉 首页/文章 这些真链接，观感也差。 -->
 
@@ -97,7 +97,7 @@ watch(
     </nav>
   </header>
 
-  <!-- 快版 / 慢版开关。fixed 定位在导航栏下方右上角，所以放在文档哪个位置都不影响视觉 ——
+  <!-- 优化后 / 优化前开关。fixed 定位在导航栏下方右上角，所以放在文档哪个位置都不影响视觉 ——
        放这儿是为了让它只出现一次，且语义上属于「站点外壳」而不是某个页面。 -->
   <VersionSwitch />
 
@@ -168,8 +168,9 @@ watch(
   }
 }
 
-/* 快版 / 慢版开关的样式不在这里 —— 它在 src/styles/version-switch.css，
-   一份文件同时给快版（Vue）和慢版（部署时注入）用，两版必须长得一模一样。 */
+/* 开关样式不在这里 —— 它在 src/styles/version-switch.css。
+   两版共用同一份 CSS（快版 VersionSwitch.vue / 慢版 VersionSwitch.naive.vue），
+   因为它们是对照实验里的同一个控件，长得不一样就等于引入了新变量。 */
 
 .auth {
   display: flex;

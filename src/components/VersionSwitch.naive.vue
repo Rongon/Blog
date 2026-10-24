@@ -16,8 +16,8 @@ const fastHref = import.meta.env.BASE_URL.replace(/naive\/$/, '')
 </script>
 
 <template>
-  <div class="vsw" role="group" aria-label="切换快版 / 慢版">
-    <a :href="fastHref">快版</a>
-    <span class="on" aria-current="true">慢版</span>
+  <div class="vsw" role="group" aria-label="切换优化后 / 优化前">
+    <a :href="fastHref">优化后</a>
+    <span class="on" aria-current="true">优化前</span>
   </div>
 </template>

@@ -47,7 +47,7 @@ export const projects: ProjectMeta[] = [
     summary:
       '一个纯前端的技术博客：Markdown 在构建时编译成页面，评论区用乐观更新保证即时反馈，图片、缓存与分包策略都做过实测对照。',
     role: '独立开发',
-    period: '2026.02 - 至今',
+    period: '2026.10 - 至今',
     stack: ['Vue 3', 'TypeScript', 'Vite', 'Pinia', 'Markdown-it', 'Shiki'],
     thumb: '/images/covers/forest-sun.webp',
     to: '/projects/program2026',
@@ -88,7 +88,7 @@ export const projects: ProjectMeta[] = [
         heading: '已知的不足',
         bullets: [
           '托管层动不了：GitHub Pages 自带 CDN、HTTP/2 与压缩，这几项没有「开 / 不开」两个版本可比，所以文档里标的是「无基线」，不算成绩。',
-          '移动端没有做过完整测量（阶段 3 明确只测桌面），只有一次 390×844 的抽样验证。',
+          '全部数据来自桌面实验室（Lighthouse 桌面预设），不是真实用户数据。',
           '评论与登录依赖第三方云服务，离线环境下不可用。',
         ],
       },

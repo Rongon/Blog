@@ -7,17 +7,11 @@ const THUMB_SIZES = '(max-width: 899px) calc(100vw - 48px), 380px'
 </script>
 
 <template>
-  <section class="head">
-    <div class="wrap">
-      <div class="kicker">项目</div>
-      <h1>一个项目</h1>
-      <p class="lede">
-        真正能点开、能被验证的只有这一个：站点自己。工作里的低代码平台和后台系统写在简历上，面试官问到再讲。
-      </p>
-    </div>
-  </section>
-
+  <!-- 站上只有一个项目，再摆一句「一个项目」的大标题纯属自说自话。
+       但页面仍然需要一个 h1（读屏软件和搜索引擎靠它判断这一页是什么），
+       所以留一个只有读屏软件能看到的标题，视觉上直接进内容。 -->
   <section class="list">
+    <h1 class="sr-only">项目</h1>
     <div class="wrap">
       <article v-for="p in projects" :key="p.slug" class="prow">
         <div class="thumb">
@@ -55,30 +49,21 @@ const THUMB_SIZES = '(max-width: 899px) calc(100vw - 48px), 380px'
 <style scoped lang="scss">
 @use '@/styles/breakpoints' as *;
 
-.head {
-  padding: 72px 0 48px;
-  border-bottom: 1px solid var(--rule);
-}
-
-.kicker {
-  margin-bottom: 18px;
-}
-
-h1 {
-  font-size: clamp(30px, 4vw, 42px);
-  letter-spacing: -0.02em;
-}
-
-.lede {
-  margin: 20px 0 0;
-  max-width: 36em;
-  color: var(--muted);
-  font-size: 17.5px;
-  line-height: 1.85;
+/* 只有读屏软件拿得到的标题：视觉上不占位，但 h1 还在 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .list {
-  padding: 8px 0 56px;
+  padding: 48px 0 56px;
 }
 
 .prow {

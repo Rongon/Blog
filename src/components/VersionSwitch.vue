@@ -13,8 +13,8 @@ const naiveHref = `${import.meta.env.BASE_URL}naive/`
 </script>
 
 <template>
-  <div class="vsw" role="group" aria-label="切换快版 / 慢版">
-    <span class="on" aria-current="true">快版</span>
-    <a :href="naiveHref">慢版</a>
+  <div class="vsw" role="group" aria-label="切换优化后 / 优化前">
+    <span class="on" aria-current="true">优化后</span>
+    <a :href="naiveHref">优化前</a>
   </div>
 </template>

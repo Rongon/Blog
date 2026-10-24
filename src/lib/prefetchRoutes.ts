@@ -17,7 +17,7 @@
  * 依赖，那时再下不算浪费。
  */
 
-const ROUTES = [() => import('@/views/ArticleListView.vue')]
+const ROUTES = [() => import('@/views/ArticleListView.vue'), () => import('@/views/AboutView.vue')]
 
 let started = false
 

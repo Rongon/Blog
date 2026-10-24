@@ -36,7 +36,8 @@ const routes: RouteRecordRaw[] = [
   },
   { path: '/about', name: 'about', component: () => import('@/views/AboutView.vue'), meta: { title: '关于' } },
   { path: '/login', name: 'login', component: () => import('@/views/LoginView.vue'), meta: { title: '登录' } },
-  { path: '/register', name: 'register', component: () => import('@/views/RegisterView.vue'), meta: { title: '注册' } },
+  // 邮箱注册已经删掉了，但旧链接和搜索结果里可能还留着 /register，别让它变成 404
+  { path: '/register', redirect: '/login' },
   { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/NotFoundView.vue'), meta: { title: '404' } },
 ]
 

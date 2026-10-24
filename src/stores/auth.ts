@@ -18,20 +18,13 @@ import { supabase, SUPABASE_URL } from '@/lib/supabase'
 /** 把 Supabase 的英文报错翻成用户看得懂的话 */
 function translateAuthError(message: string): string {
   const m = message.toLowerCase()
-  if (m.includes('invalid login credentials')) return '邮箱或密码不对。'
-  if (m.includes('user already registered')) return '这个邮箱已经注册过了，直接登录吧。'
-  if (m.includes('password should be at least')) return '密码至少要 6 位。'
-  if (m.includes('email not confirmed')) {
-    return '邮箱还没验证。要么去邮箱点确认链接，要么在 Supabase 后台把「Confirm email」关掉。'
-  }
-  if (m.includes('rate limit') || m.includes('too many')) {
-    return '操作太频繁了，等一会儿再试（免费版发验证邮件有额度限制）。'
-  }
-  if (m.includes('unable to validate email')) return '邮箱格式看起来不对。'
   if (m.includes('provider is not enabled') || m.includes('unsupported provider')) {
     return 'GitHub 登录还没在 Supabase 后台开启。'
   }
-  if (m.includes('oauth')) return '第三方登录没能完成，可以试试用邮箱登录。'
+  if (m.includes('rate limit') || m.includes('too many')) {
+    return '操作太频繁了，等一会儿再试。'
+  }
+  if (m.includes('oauth')) return '第三方登录没能完成，再点一次试试。'
   return message
 }
 
@@ -52,11 +45,10 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * 评论区显示的名字。按顺序找：
-   * 1. 注册时自己填的 display_name
-   * 2. GitHub 来的 full_name / name（真实姓名，可能没有）
-   * 3. GitHub 用户名（一定会有）
-   * 4. 邮箱 @ 前面那段（邮箱登录的老用户）
-   * 5. 实在没有再兜底「匿名」
+   * 1. GitHub 的 full_name / name（真实姓名，可能没设）
+   * 2. GitHub 用户名（一定有，OAuth 一定带）
+   * 3. 邮箱 @ 前面那段（历史遗留：早期用邮箱注册过的账号还有效）
+   * 4. 实在没有再兜底「匿名」
    */
   const displayName = computed(() => {
     const u = user.value
@@ -92,27 +84,6 @@ export const useAuthStore = defineStore('auth', () => {
     supabase.auth.onAuthStateChange((_event, next) => {
       session.value = next
     })
-  }
-
-  async function signIn(email: string, password: string) {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) throw new AuthError(translateAuthError(error.message))
-    session.value = data.session
-  }
-
-  async function signUp(email: string, password: string, displayName: string) {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      // 昵称存进 user_metadata，注册后不用再建一张「用户资料表」
-      options: { data: { display_name: displayName.trim() } },
-    })
-    if (error) throw new AuthError(translateAuthError(error.message))
-
-    // 如果后台开了「Confirm email」，这里 session 是 null —— 需要用户先去邮箱点确认。
-    // 关掉之后就是注册即登录。页面靠返回值判断该提示哪一句。
-    session.value = data.session
-    return { needsEmailConfirm: !data.session }
   }
 
   /**
@@ -151,7 +122,7 @@ export const useAuthStore = defineStore('auth', () => {
       sessionStorage.setItem('p2026:after-login', nextPath)
     }
     if (!(await isGitHubEnabled())) {
-      throw new AuthError('GitHub 登录还没开启，先用邮箱登录吧。')
+      throw new AuthError('GitHub 登录还没开启，稍后再试。')
     }
     const redirectTo = new URL(import.meta.env.BASE_URL, window.location.origin).href
     const { error } = await supabase.auth.signInWithOAuth({
@@ -173,8 +144,6 @@ export const useAuthStore = defineStore('auth', () => {
     isLoggedIn,
     displayName,
     init,
-    signIn,
-    signUp,
     signInWithGitHub,
     signOut,
   }

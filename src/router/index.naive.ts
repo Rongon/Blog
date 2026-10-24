@@ -20,7 +20,6 @@ import ProjectListView from '@/views/ProjectListView.vue'
 import ProjectDetailView from '@/views/ProjectDetailView.vue'
 import AboutView from '@/views/AboutView.vue'
 import LoginView from '@/views/LoginView.vue'
-import RegisterView from '@/views/RegisterView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 
 const routes: RouteRecordRaw[] = [
@@ -31,7 +30,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/projects/:slug', name: 'project-detail', component: ProjectDetailView, meta: { title: '项目详情' } },
   { path: '/about', name: 'about', component: AboutView, meta: { title: '关于' } },
   { path: '/login', name: 'login', component: LoginView, meta: { title: '登录' } },
-  { path: '/register', name: 'register', component: RegisterView, meta: { title: '注册' } },
+  { path: '/register', redirect: '/login' },
   { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView, meta: { title: '404' } },
 ]
 

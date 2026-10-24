@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { defineAsyncComponent, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useTheme } from '@/composables/useTheme'
 import { hasStoredSession } from '@/lib/authStorage'
 import VersionSwitch from '@/components/VersionSwitch.vue'
 
 const { theme, toggleTheme } = useTheme()
 const route = useRoute()
+const router = useRouter()
 
 /**
  * 优化项 8 的全部内容：把登录态从首屏关键路径上摘下来。
@@ -20,6 +21,30 @@ const route = useRoute()
  *    绝大多数访客（包括 Lighthouse 的匿名访问）走的都是这条路。
  */
 const AuthMenu = defineAsyncComponent(() => import('@/components/AuthMenu.vue'))
+
+/**
+ * 未登录时那个「登录」按钮：点下去直接开始 GitHub 授权，不经过登录页。
+ *
+ * 【为什么不用静态 import】这里如果 `import { useAuthStore }`，Supabase SDK 就会被
+ * 拽回入口包 —— 优化项 8 白做。所以用动态 import：只有真的点了登录，
+ * 那一份 chunk 才被下载。未登录访客的常用路径（读文章）一次都不会触发它。
+ */
+const signInBusy = ref(false)
+async function onSignIn() {
+  if (signInBusy.value) return
+  signInBusy.value = true
+  try {
+    const { useAuthStore } = await import('@/stores/auth')
+    await useAuthStore().signInWithGitHub(route.fullPath)
+  } catch {
+    // 授权没能开始（最可能是 provider 没配好）。送去登录页，那里有一句人话解释。
+    // 注意这里不能 import element-plus 弹 toast：那会把它的 chunk 拉进首屏依赖图，
+    // 入口包立刻从 126 kB 涨回 300 kB 级别（实测过）。
+    void router.push('/login')
+  } finally {
+    signInBusy.value = false
+  }
+}
 
 const hasSession = ref(hasStoredSession())
 
@@ -72,7 +97,7 @@ watch(
            宽度固定在外层 .auth 上，两种状态互相切换时不会推动右边的按钮。 -->
       <div class="auth">
         <AuthMenu v-if="hasSession" />
-        <RouterLink v-else class="in" to="/login">登录</RouterLink>
+        <button v-else class="in" type="button" :disabled="signInBusy" @click="onSignIn">登录</button>
       </div>
 
       <button class="tgl" type="button" @click="toggleTheme">

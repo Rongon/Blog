@@ -47,7 +47,7 @@ const router = createRouter({
   },
 })
 
-const SITE = '曾泽龙 · 前端工程师'
+const SITE = "Rongon's blog"
 
 router.afterEach((to) => {
   const title = to.meta.title as string | undefined

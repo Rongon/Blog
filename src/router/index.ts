@@ -61,7 +61,7 @@ const router = createRouter({
   },
 })
 
-const SITE = '曾泽龙 · 前端工程师'
+const SITE = "Rongon's blog"
 
 /**
  * 【慢版的深链接为什么需要这一段】

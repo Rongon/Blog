@@ -13,12 +13,13 @@
  * 现在改成「谁渲染这个组件，谁负责初始化」，登录态真正被需要的时候才发生。
  */
 import { watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 
 // 挂载即初始化（内部有 started 标志，重复调用不会重复请求）
 void auth.init()
@@ -45,6 +46,18 @@ async function onSignOut() {
   await auth.signOut()
   ElMessage.success('已退出登录')
 }
+
+/**
+ * 顶栏的「登录」直接开始 GitHub 授权，没有中间页。
+ * 顺带把当前路径交出去，授权回来 AuthMenu 会把人送回原地。
+ */
+async function onSignIn() {
+  try {
+    await auth.signInWithGitHub(route.fullPath)
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : 'GitHub 登录没能开始')
+  }
+}
 </script>
 
 <template>
@@ -52,7 +65,7 @@ async function onSignOut() {
     <span class="who">{{ auth.displayName }}</span>
     <button class="out" type="button" @click="onSignOut">退出</button>
   </template>
-  <RouterLink v-else class="in" to="/login">登录</RouterLink>
+  <button v-else class="in" type="button" @click="onSignIn">登录</button>
 </template>
 
 <style scoped lang="scss">
@@ -70,6 +83,10 @@ async function onSignOut() {
   font-family: var(--font-sans);
   font-size: 13.5px;
   color: var(--muted);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
 
   &:hover {
     color: var(--ink);

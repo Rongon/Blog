@@ -171,7 +171,17 @@ function canDelete(c: Comment): boolean {
   return Boolean(auth.user && auth.user.id === c.authorId && !c.pending)
 }
 
-const loginLink = computed(() => ({ path: '/login', query: { redirect: route.fullPath } }))
+/**
+ * 点「去登录」直接开始 GitHub 授权，不经过中间的登录页。
+ * 只有一种情况会退回登录页：OAuth 没配好，原地提示比跳走更有用。
+ */
+async function onSignIn() {
+  try {
+    await auth.signInWithGitHub(route.fullPath)
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : 'GitHub 登录没能开始')
+  }
+}
 
 /** 相对时间。只做展示，不参与任何逻辑 */
 function formatTime(iso: string): string {
@@ -219,9 +229,7 @@ function formatTime(iso: string): string {
 
     <div v-else class="needlogin">
       <p>评论需要先登录。</p>
-      <RouterLink :to="loginLink">
-        <el-button type="primary" plain>去登录 / 注册</el-button>
-      </RouterLink>
+      <el-button type="primary" plain @click="onSignIn">用 GitHub 登录</el-button>
     </div>
 
     <!-- 列表 -->

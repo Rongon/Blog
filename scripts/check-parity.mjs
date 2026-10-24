@@ -43,6 +43,21 @@ import { extname, join, resolve } from 'node:path'
 const DIST = resolve(process.argv[2] ?? 'dist')
 const BASE = (process.argv[3] ?? '/Blog/').replace(/\/?$/, '/')
 
+/**
+ * 两档视口都要比。
+ *
+ * 移动端不统计性能数字（这是项目一开始就定下的边界），但**功能必须都在**：
+ * 窄屏下顶栏会收进「菜单」、卡片会变单列、版本开关会挪位置 —— 这些恰恰是
+ * 两版最容易走偏的地方，所以移动端也要逐字比一遍。
+ */
+const VIEWPORTS = [
+  { name: '桌面', width: 1400, height: 1000, mobile: false },
+  { name: '移动', width: 390, height: 844, mobile: true },
+]
+
+const MOBILE_UA =
+  'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36'
+
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -260,36 +275,183 @@ async function stableText(cdp) {
   }
 }
 
-/**
- * 在一张新标签页里打开 url，取回文字与结构签名。
- *
- * 装一个文档级拦截器：把「发往本机以外的文档请求」全部 fail 掉。
- * 为什么需要 —— `/login` 的职责就是把你送去 GitHub，不拦的话两次抽样会分别落到
- * GitHub 的不同页面上（一次登录页、一次错误页），比出来的东西毫无意义。
- * 拦掉之后页面停在自己的登录模块上，两版比的才是同一个界面。
- */
-async function sample(port, url, localOrigin) {
+async function openPage(port, localOrigin, viewport) {
   const res = await fetch(`http://127.0.0.1:${port}/json/new?about:blank`, { method: 'PUT' })
   const target = await res.json()
   const cdp = await Cdp.connect(target.webSocketDebuggerUrl)
-  try {
-    await cdp.send('Page.enable')
-    await cdp.send('Fetch.enable', {
-      patterns: [{ urlPattern: '*', resourceType: 'Document', requestStage: 'Request' }],
-    })
-    cdp.on('Fetch.requestPaused', (p) => {
-      const task = p.request.url.startsWith(localOrigin)
-        ? cdp.send('Fetch.continueRequest', { requestId: p.requestId })
-        : cdp.send('Fetch.failRequest', { requestId: p.requestId, errorReason: 'Aborted' })
-      task.catch(() => {})
-    })
 
+  await cdp.send('Page.enable')
+  // 视口。移动端还要开触摸 + 换 UA —— 有些样式和事件分支认的是 UA，不只是宽度。
+  await cdp.send('Emulation.setDeviceMetricsOverride', {
+    width: viewport.width,
+    height: viewport.height,
+    deviceScaleFactor: viewport.mobile ? 3 : 1,
+    mobile: viewport.mobile,
+  })
+  await cdp.send('Emulation.setTouchEmulationEnabled', {
+    enabled: viewport.mobile,
+    maxTouchPoints: 5,
+  })
+  if (viewport.mobile) {
+    await cdp.send('Emulation.setUserAgentOverride', { userAgent: MOBILE_UA, platform: 'Android' })
+  }
+
+  await cdp.send('Fetch.enable', {
+    patterns: [{ urlPattern: '*', resourceType: 'Document', requestStage: 'Request' }],
+  })
+  cdp.on('Fetch.requestPaused', (p) => {
+    const task = p.request.url.startsWith(localOrigin)
+      ? cdp.send('Fetch.continueRequest', { requestId: p.requestId })
+      : cdp.send('Fetch.failRequest', { requestId: p.requestId, errorReason: 'Aborted' })
+    task.catch(() => {})
+  })
+
+  return { cdp, target }
+}
+
+async function closePage(port, cdp, target) {
+  cdp.close()
+  await fetch(`http://127.0.0.1:${port}/json/close/${target.id}`).catch(() => {})
+}
+
+/**
+ * 移动端「关键控件都能用」：主题切换、版本开关、登录入口、列表筛选、评论区。
+ * 逐项点一下看有没有反应 —— 窄屏下这些控件最容易被挤掉或挡住。
+ */
+async function mobileControls(port, base, localOrigin) {
+  const viewport = VIEWPORTS.find((v) => v.mobile)
+  const { cdp, target } = await openPage(port, localOrigin, viewport)
+  const out = {}
+  try {
+    // 先把主题重置成 light 再重载：两版共用一个 localStorage，
+    // 不重置的话后跑的那次会继承上一次的开/关状态，比出来的是状态而不是实现。
+    await cdp.send('Page.navigate', { url: base })
+    await stableText(cdp)
+    await cdp.evaluate(`(() => { try { localStorage.setItem('p2026:theme', 'light') } catch (e) {} })()`)
+    await cdp.send('Page.reload')
+    await stableText(cdp)
+
+    // 主题开关：点一下，等一拍再读（toggleTheme 走的是响应式更新，不是同步改属性）
+    out.themeBefore = await cdp.evaluate(`document.documentElement.getAttribute('data-theme')`)
+    await cdp.evaluate(`document.querySelector('.tgl')?.click()`)
+    await sleep(450)
+    out.themeAfter = await cdp.evaluate(`document.documentElement.getAttribute('data-theme')`)
+    out.themeLabel = await cdp.evaluate(`document.querySelector('.tgl')?.textContent.trim() ?? null`)
+
+    // 版本开关：窄屏下是否还在、是否可点（文案本来就相反，不参与比较）
+    out.switchLink = await cdp.evaluate(`(() => {
+      const a = document.querySelector('.vsw a')
+      if (!a) return null
+      const r = a.getBoundingClientRect()
+      return { href: a.getAttribute('href'), h: Math.round(r.height), clickable: r.width > 20 && r.height > 12 }
+    })()`)
+
+    // 登录入口：点一下（外部导航被拦截器挡住，页面留在原地）
+    out.login = await cdp.evaluate(`(() => {
+      const b = document.querySelector('.auth .in')
+      if (!b) return null
+      const r = b.getBoundingClientRect()
+      b.click()
+      return { text: b.textContent.trim(), clickable: r.width > 20 && r.height > 12 }
+    })()`)
+    await sleep(600)
+
+    // 文章列表：筛选项能点、地址栏跟着变
+    await cdp.send('Page.navigate', { url: `${base}articles` })
+    await stableText(cdp)
+    out.filterBefore = await cdp.evaluate('location.search')
+    await cdp.evaluate(`[...document.querySelectorAll('button')].find((b) => b.textContent.trim() === '技术')?.click()`)
+    await sleep(500)
+    out.filterAfter = await cdp.evaluate('location.search')
+
+    // 评论区：有没有那一块，以及未登录时给的是登录入口
+    const firstArticle = await cdp.evaluate(`(() => {
+      const a = document.querySelector('main a[href*="/articles/"]')
+      return a ? a.getAttribute('href') : null
+    })()`)
+    if (firstArticle) {
+      await cdp.send('Page.navigate', { url: new URL(firstArticle, `${base}articles`).href })
+      await stableText(cdp)
+      out.comments = await cdp.evaluate(`(() => {
+        const s = document.querySelector('section.comments')
+        if (!s) return null
+        return {
+          exists: true,
+          hasEditor: !!s.querySelector('textarea'),
+          hasLoginCta: !!s.querySelector('button, a'),
+        }
+      })()`)
+    }
+    await sleep(200)
+
+    return out
+  } finally {
+    await closePage(port, cdp, target)
+  }
+}
+
+async function sample(port, url, localOrigin, viewport) {
+  const { cdp, target } = await openPage(port, localOrigin, viewport)
+  try {
     await cdp.send('Page.navigate', { url })
     await stableText(cdp)
     return await cdp.evaluate(PROBE)
   } finally {
-    cdp.close()
-    await fetch(`http://127.0.0.1:${port}/json/close/${target.id}`).catch(() => {})
+    await closePage(port, cdp, target)
+  }
+}
+
+/**
+ * 移动端的「能不能用」冒烟：菜单能开、菜单项齐、卡片能点进详情。
+ * 文字一致不等于能点 —— 这一步专门验证交互，两版都必须通过。
+ */
+async function mobileSmoke(port, url, localOrigin) {
+  const viewport = VIEWPORTS.find((v) => v.mobile)
+  const { cdp, target } = await openPage(port, localOrigin, viewport)
+  try {
+    await cdp.send('Page.navigate', { url })
+    await stableText(cdp)
+
+    const burger = await cdp.evaluate(`(() => {
+      const b = document.querySelector('.burger')
+      if (!b) return null
+      b.click()
+      return b.textContent.trim()
+    })()`)
+    await sleep(400)
+
+    const menu = await cdp.evaluate(`(() => {
+      const n = document.querySelector('#site-menu')
+      if (!n) return null
+      return {
+        open: n.classList.contains('open'),
+        display: getComputedStyle(n).display,
+        expanded: document.querySelector('.burger')?.getAttribute('aria-expanded') ?? null,
+        links: [...n.querySelectorAll('a')].map((a) => a.textContent.trim()),
+      }
+    })()`)
+
+    // 收起菜单，再点第一张文章卡片
+    await cdp.evaluate(`document.querySelector('.burger')?.click()`)
+    await sleep(250)
+
+    const clicked = await cdp.evaluate(`(() => {
+      const a = document.querySelector('main a[href*="/articles/"]')
+      if (!a) return null
+      a.click()
+      return a.getAttribute('href')
+    })()`)
+    await stableText(cdp)
+
+    const after = await cdp.evaluate(`({
+      path: location.pathname,
+      h1: document.querySelector('h1')?.textContent.trim() ?? null,
+      switchVisible: !!document.querySelector('.vsw'),
+    })`)
+
+    return { burger, menu, clicked, after }
+  } finally {
+    await closePage(port, cdp, target)
   }
 }
 
@@ -350,29 +512,135 @@ async function main() {
   const base = `${localOrigin}${BASE}`
   const failures = []
 
-  console.log(`对比 ${list.length} 条路由：${BASE}（优化后） ↔ ${BASE}naive/（优化前）\n`)
+  console.log(`对比 ${list.length} 条路由 × ${VIEWPORTS.length} 档视口：`)
+  console.log(`  优化后 ${BASE}  ↔  优化前 ${BASE}naive/`)
+  console.log(`  视口：${VIEWPORTS.map((v) => `${v.name} ${v.width}×${v.height}`).join('、')}\n`)
 
-  for (const route of list) {
-    const tail = route.replace(/^\//, '')
-    const fast = await sample(devtools, `${base}${tail}`, localOrigin)
-    const naive = await sample(devtools, `${base}naive/${tail}`, localOrigin)
+  for (const vp of VIEWPORTS) {
+    console.log(`【${vp.name} ${vp.width}×${vp.height}】`)
+    for (const route of list) {
+      const tail = route.replace(/^\//, '')
+      const fast = await sample(devtools, `${base}${tail}`, localOrigin, vp)
+      const naive = await sample(devtools, `${base}naive/${tail}`, localOrigin, vp)
 
-    const at = firstDiff(fast.text, naive.text)
-    const sigFast = JSON.stringify(fast.sig)
-    const sigNaive = JSON.stringify(naive.sig)
+      const at = firstDiff(fast.text, naive.text)
+      const sigFast = JSON.stringify(fast.sig)
+      const sigNaive = JSON.stringify(naive.sig)
 
-    if (at === -1 && sigFast === sigNaive) {
-      console.log(`  [通过] ${route}`)
-      continue
+      if (at === -1 && sigFast === sigNaive) {
+        console.log(`  [通过] ${route}`)
+        continue
+      }
+      failures.push({ vp: vp.name, route, at, fast, naive, sigFast, sigNaive })
+      console.log(`  [不一致] ${route}`)
     }
-    failures.push({ route, at, fast, naive, sigFast, sigNaive })
-    console.log(`  [不一致] ${route}`)
+    console.log('')
   }
 
+  // 移动端交互冒烟：文字一致 ≠ 能点。菜单、卡片跳转两版都要过。
+  console.log('【移动端交互冒烟】')
+  const smokeFast = await mobileSmoke(devtools, base, localOrigin)
+  const smokeNaive = await mobileSmoke(devtools, `${base}naive/`, localOrigin)
+
+  // 慢版的路由前缀多一层 /naive，比对前先抹平
+  const flatten = (o) =>
+    JSON.stringify(o, (k, v) =>
+      typeof v === 'string' ? v.replaceAll(`${BASE}naive/`, BASE).replaceAll(`${BASE}naive`, BASE) : v
+    )
+
+  const smokeFastJson = flatten(smokeFast)
+  const smokeNaiveJson = flatten(smokeNaive)
+
+  const smokeOk =
+    smokeFastJson === smokeNaiveJson &&
+    smokeFast.burger === '菜单' &&
+    smokeFast.menu?.open === true &&
+    (smokeFast.menu?.links?.length ?? 0) >= 4 &&
+    smokeFast.after?.h1 != null &&
+    smokeFast.after.path.includes('/articles/')
+
+  if (smokeOk) {
+    console.log(`  [通过] 菜单可展开（${smokeFast.menu.links.join(' / ')}）`)
+    console.log(`  [通过] 卡片可点进详情：${smokeFast.after.path}`)
+    console.log(`  [通过] 标题渲染：${smokeFast.after.h1}`)
+  } else {
+    console.log('  [不一致] 移动端交互两版不同，明细如下')
+    failures.push({
+      vp: '移动 · 交互',
+      route: '/',
+      at: -1,
+      fast: { text: smokeFastJson, sig: null },
+      naive: { text: smokeNaiveJson, sig: null },
+      sigFast: smokeFastJson,
+      sigNaive: smokeNaiveJson,
+    })
+  }
+
+  // 关键控件：主题、版本开关、登录、筛选、评论区
+  const controlsFast = await mobileControls(devtools, base, localOrigin)
+  const controlsNaive = await mobileControls(devtools, `${base}naive/`, localOrigin)
+
+  // 逐个字段比。版本开关的文案本来就相反（快版那边写「优化前」），不参与比较。
+  const keys = ['themeBefore', 'themeAfter', 'themeLabel', 'login', 'filterAfter', 'comments']
+  const ctlDiffs = keys.filter((k) => flatten(controlsFast[k]) !== flatten(controlsNaive[k]))
+  // 版本开关不比「相等」，比「各自指对了对面」：
+  // 优化后那一页的链接要指向 /Blog/naive/，优化前那一页要指回 /Blog/。
+  // （flatten() 会把 /naive/ 前缀抹平，直接用它会把这个差异也抹掉，所以这里单独比。）
+  const switchSame =
+    controlsFast.switchLink?.href === `${BASE}naive/` &&
+    controlsNaive.switchLink?.href === BASE &&
+    controlsFast.switchLink?.h === controlsNaive.switchLink?.h &&
+    controlsFast.switchLink?.clickable === controlsNaive.switchLink?.clickable
+  if (!switchSame) ctlDiffs.push('switchLink')
+
+  // 不只知道「两版一样」，还要知道「点了真有用」
+  const works =
+    controlsFast.themeAfter != null &&
+    controlsFast.themeAfter !== controlsFast.themeBefore &&
+    controlsFast.switchLink?.clickable === true &&
+    controlsFast.login?.clickable === true &&
+    controlsFast.filterAfter !== controlsFast.filterBefore &&
+    controlsFast.comments?.exists === true
+
+  const controlsOk = ctlDiffs.length === 0 && works && switchSame
+
+  if (process.env.PARITY_DEBUG) {
+    console.log('DEBUG fast switch:', JSON.stringify(controlsFast.switchLink))
+    console.log('DEBUG naive switch:', JSON.stringify(controlsNaive.switchLink))
+    console.log('DEBUG switchSame:', switchSame, 'ctlDiffs:', ctlDiffs.join(','), 'works:', works)
+  }
+
+  if (controlsOk) {
+    console.log(`  [通过] 主题开关点了有用：${controlsFast.themeBefore} → ${controlsFast.themeAfter}（按钮文案变成「${controlsFast.themeLabel}」）`)
+    console.log(`  [通过] 版本开关在窄屏可点（高 ${controlsFast.switchLink.h}px，指向 ${controlsFast.switchLink.href}）`)
+    console.log(`  [通过] 登录入口可点（文案「${controlsFast.login.text}」）`)
+    console.log(`  [通过] 列表筛选写进地址栏：${controlsFast.filterAfter}`)
+    console.log(`  [通过] 评论区在，未登录时给登录入口（可输入框：${controlsFast.comments.hasEditor}）`)
+  } else {
+    console.log('  [不一致] 移动端关键控件有问题，明细如下')
+    if (ctlDiffs.length) console.log(`    字段不一致：${ctlDiffs.join(', ')}`)
+    if (!works) console.log('    并且有控件点了没反应')
+    console.log(`    优化后：${flatten(controlsFast)}`)
+    console.log(`    优化前：${flatten(controlsNaive)}`)
+    failures.push({
+      vp: '移动 · 控件',
+      route: '/',
+      at: -1,
+      fast: { text: flatten(controlsFast), sig: null },
+      naive: { text: flatten(controlsNaive), sig: null },
+      sigFast: flatten(controlsFast),
+      sigNaive: flatten(controlsNaive),
+    })
+  }
+  console.log('')
+
   if (failures.length) {
-    console.log('\n不一致明细：')
+    console.log('不一致明细：')
     for (const f of failures) {
-      console.log(`\n- ${f.route}`)
+      console.log(`\n- [${f.vp}] ${f.route}`)
+      if (f.route === '/' && f.sigFast?.startsWith('{')) {
+        continue
+      }
       if (f.at !== -1) {
         console.log(`  文字第 ${f.at} 个字符开始不同`)
         console.log(`  优化后：…${context(f.fast.text, f.at)}…`)
@@ -396,10 +664,14 @@ async function main() {
   server.close()
   await rm(profile, { recursive: true, force: true }).catch(() => {})
 
+  const total = list.length * VIEWPORTS.length
+  const textFail = failures.filter((f) => !(f.route === '/' && f.sigFast?.startsWith('{'))).length
+  const smokeFail = failures.length - textFail
+
   console.log(
     failures.length
-      ? `\n结果：${failures.length}/${list.length} 条路由不一致 —— 两版的差异不只是性能，先修掉再发布。`
-      : `\n结果：${list.length}/${list.length} 条路由的静态文字与结构完全一致（评论区已排除）。`
+      ? `\n结果：${textFail}/${total} 条「路由×视口」文字或结构不一致${smokeFail ? '，移动端交互也不一致' : ''} —— 先修掉再发布。`
+      : `\n结果：${total}/${total} 条「路由×视口」的静态文字与结构完全一致（评论区已排除），移动端交互冒烟也通过。`
   )
 
   process.exit(failures.length ? 1 : 0)

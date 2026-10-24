@@ -8,7 +8,8 @@
 
 const contact = [
   { label: 'GitHub', value: 'github.com/Rongon', href: 'https://github.com/Rongon' },
-  { label: '邮箱', value: '13035813904@163.com', href: 'mailto:13035813904@163.com' },
+  // href 留空 = 渲染成纯文本，不做成 mailto 链接
+  { label: '邮箱', value: '13035813904@163.com', href: '' },
 ]
 
 const skills: { group: string; items: string[] }[] = [
@@ -22,7 +23,7 @@ const timeline = [
   {
     period: '2023 - 至今',
     title: '前端开发',
-    note: '中后台系统、企业内部低代码搭建平台；团队里负责页面搭建与物料组件。',
+    note: '中后台系统开发；团队里负责页面搭建与可复用物料组件。',
   },
   {
     period: '2019 - 2023',
@@ -38,7 +39,7 @@ const timeline = [
       <div class="kicker">关于</div>
       <h1>你好，我是曾泽龙。</h1>
           <p class="lede">
-        前端工程师，两年经验。日常工作写中后台，也做内部低代码平台。这个站点是我自己搭的，用来放文章。
+        前端工程师，两年经验。日常工作写中后台系统。这个站点是我自己搭的，用来放文章。
       </p>
     </div>
   </section>
@@ -49,7 +50,7 @@ const timeline = [
         <section class="sec">
           <h2>我在做什么</h2>
           <p>
-            工作中主要写中后台系统：表单、表格、详情、权限，这类页面重复度高、细节多。后来参与公司的低代码搭建平台，把其中一部分从「写」变成「配」。
+            工作中主要写中后台系统：表单、表格、详情、权限，这类页面重复度高、细节多。做久了会想把其中重复的部分抽成可复用的配置与组件。
           </p>
           <p>
             业余时间在准备这个站点。它没什么花哨功能，但我把「怎么验证一件事真的变快了」当成一个正经问题在做：同一份内容部署两个版本，数字都留在站内，谁都可以自己点开对比。
@@ -96,10 +97,12 @@ const timeline = [
           <ul class="contact">
             <li v-for="c in contact" :key="c.label">
               <span class="ui label">{{ c.label }}</span>
-              <a v-if="c.href" :href="c.href" target="_blank" rel="noopener noreferrer">
+              <!-- 邮箱不是网页，做成 mailto 只会在别人的机器上弹一个没用过的邮件客户端，
+                   所以这里就是纯文本，复制走就行；只有真网址才给链接和 ↗ -->
+              <a v-if="c.href && c.href.startsWith('http')" :href="c.href" target="_blank" rel="noopener noreferrer">
                 {{ c.value }} ↗
               </a>
-              <span v-else class="ui pending">{{ c.value }}</span>
+              <span v-else class="ui mail">{{ c.value }}</span>
             </li>
           </ul>
         </div>

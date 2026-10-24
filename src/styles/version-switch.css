@@ -62,13 +62,11 @@
   .vsw > * {
     padding: 4px 7px;
   }
-}
 
-/* ≤599px 时顶栏折成了两行（品牌行 + 栏目条），高度约 100px。
-   开关原来 fixed 在 68px 处会正好压在栏目条上，所以往下让。 */
-@media (max-width: 599px) {
-  .vsw {
-    top: 112px;
-    right: 16px;
+  /* 窄屏展开三条杠菜单时，这个开关会浮在菜单项上面（它 z-index 比顶栏高），
+     看着像画错了。菜单开着的时候先让它让位。body 上那个类由 DefaultLayout 挂。 */
+  .menu-open .vsw {
+    opacity: 0;
+    pointer-events: none;
   }
 }

@@ -60,14 +60,40 @@ watch(
 )
 
 // 四个入口。项目只放站点自己那一个（见 src/data/projects.ts 的说明）。
-// 窄屏不再折叠成「菜单」：栏目条直接留在顶栏上（见下面 sm-down 的两行布局），
-// 手机上也能一眼看见 首页/项目/文章/关于 —— 藏进汉堡菜单等于让人找不到。
 const nav = [
   { to: '/', label: '首页' },
   { to: '/projects', label: '项目' },
   { to: '/articles', label: '文章' },
   { to: '/about', label: '关于' },
 ]
+
+/**
+ * 窄屏的三条杠菜单（<900px 时栏目条藏起来，靠它进页面）。
+ *
+ * 【为什么是折叠菜单而不是把栏目条摆出来】
+ * 试过两行报头的写法（第一行报名、第二行栏目条），功能上没问题，但手机上的老习惯
+ * 就是右上角三条杠 —— 通用约定比「更显眼」更重要，读者不需要重新学。
+ * 代价是「关于」被藏起来一次点击，所以菜单里四项必须全在，且点完自动收起。
+ */
+const menuOpen = ref(false)
+
+// 展开时给 body 挂个记号：那个固定定位的「优化后/优化前」开关会浮在菜单上，
+// 看起来像个 bug（它 z-index 比顶栏高）。用 body 上的类让样式去隐藏它，
+// 而不是在这里直接摸 DOM 元素 —— 两版共用这份组件，所以行为天然一致。
+watch(
+  menuOpen,
+  (open) => {
+    document.body.classList.toggle('menu-open', open)
+  },
+  { flush: 'sync' },
+)
+
+watch(
+  () => route.fullPath,
+  () => {
+    menuOpen.value = false
+  },
+)
 </script>
 
 <template>
@@ -96,7 +122,31 @@ const nav = [
       <button class="tgl" type="button" @click="toggleTheme">
         {{ theme === 'dark' ? '浅色模式' : '深色模式' }}
       </button>
+
+      <!-- 窄屏的三条杠。用图标而不是「菜单」两个字：三条杠是通用约定，
+           而「菜单」两个汉字在小按钮里既挤又不像按钮。 -->
+      <button
+        class="burger"
+        type="button"
+        :class="{ open: menuOpen }"
+        :aria-expanded="menuOpen"
+        aria-controls="site-menu"
+        :aria-label="menuOpen ? '收起导航' : '打开导航'"
+        @click="menuOpen = !menuOpen"
+      >
+        <svg width="18" height="12" viewBox="0 0 18 12" aria-hidden="true">
+          <rect class="b1" x="0" y="0" width="18" height="1.6" fill="currentColor" />
+          <rect class="b2" x="0" y="5.2" width="18" height="1.6" fill="currentColor" />
+          <rect class="b3" x="0" y="10.4" width="18" height="1.6" fill="currentColor" />
+        </svg>
+      </button>
     </div>
+
+    <nav id="site-menu" class="menu" :class="{ open: menuOpen }">
+      <RouterLink v-for="item in nav" :key="item.to" :to="item.to">
+        {{ item.label }}
+      </RouterLink>
+    </nav>
   </header>
 
   <!-- 优化后 / 优化前开关。fixed 定位在导航栏下方右上角，所以放在文档哪个位置都不影响视觉 ——
@@ -225,10 +275,78 @@ const nav = [
   }
 }
 
-/* 窄屏不再有折叠菜单。原来的写法是 <900px 藏掉导航、给一个「菜单」按钮 ——
-   结果是手机上根本看不见 首页/项目/文章/关于，读者只能滚到页脚去猜。
-   现在改成：600–899px 仍是一行（放得下），≤599px 折成两行，栏目条独占第二行。 */
+/* 三条杠按钮：宽屏不显示 */
+.burger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 32px;
+  padding: 0;
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  cursor: pointer;
 
+  &:hover {
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+
+  svg {
+    display: block;
+  }
+
+  /* 展开时三条杠收成叉：位置靠 transform 过渡，不换图标就不会有跳动 */
+  rect {
+    transform-origin: 9px 6px;
+    transition:
+      transform 0.18s ease,
+      opacity 0.18s ease;
+  }
+
+  &.open {
+    .b1 {
+      transform: translateY(5.2px) rotate(45deg);
+    }
+
+    .b2 {
+      opacity: 0;
+    }
+
+    .b3 {
+      transform: translateY(-5.2px) rotate(-45deg);
+    }
+  }
+}
+
+/* 折叠菜单：宽屏不显示，展开时从顶栏下面滑出来 */
+.menu {
+  display: none;
+  flex-direction: column;
+  border-top: 1px solid var(--rule-soft);
+  background: var(--bg);
+
+  a {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    color: var(--muted);
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--rule-soft);
+
+    &:hover {
+      color: var(--ink);
+      border-bottom-color: var(--rule-soft);
+    }
+
+    &.router-link-exact-active {
+      color: var(--ink);
+    }
+  }
+}
+
+/* 窄屏：栏目条收起，右上角三条杠。</900px 一行就放得下「报名 + 登录 + 主题 + 三条杠」。 */
 @include md-down {
   .top-in {
     gap: 16px;
@@ -236,40 +354,26 @@ const nav = [
   }
 
   .nav {
-    gap: 16px;
+    display: none;
+  }
 
-    a {
-      font-size: 13.5px;
-    }
+  .burger {
+    display: flex;
+  }
+
+  .menu.open {
+    display: flex;
+  }
+
+  .auth {
+    margin-left: auto;
   }
 }
 
 @include sm-down {
   .top-in {
-    height: auto;
-    flex-wrap: wrap;
-    gap: 8px 12px;
-    padding: 10px 16px 0;
-  }
-
-  /* 第二行：栏目条。铺满整行、四等分，比挤在右边更像报纸的栏目条 */
-  .nav {
-    order: 3;
-    width: 100%;
-    margin: 6px 0 0;
-    justify-content: space-between;
-    gap: 0;
-    padding: 9px 0 10px;
-    border-top: 1px solid var(--rule-soft);
-
-    a {
-      font-size: 14px;
-    }
-  }
-
-  /* 品牌 + 登录 + 主题挤在第一行，登录往右靠 */
-  .auth {
-    margin-left: auto;
+    gap: 10px;
+    padding: 0 12px;
   }
 
   .tgl {

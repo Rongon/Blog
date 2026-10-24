@@ -402,7 +402,7 @@ async function sample(port, url, localOrigin, viewport) {
 }
 
 /**
- * 移动端的「能不能用」冒烟：栏目条直接可见（不再藏进菜单）、栏目能点、卡片能点进详情。
+ * 移动端的「能不能用」冒烟：三条杠能开、菜单项齐、能进「关于」、卡片能点进详情。
  * 文字一致不等于能点 —— 这一步专门验证交互，两版都必须通过。
  */
 async function mobileSmoke(port, url, localOrigin) {
@@ -412,24 +412,41 @@ async function mobileSmoke(port, url, localOrigin) {
     await cdp.send('Page.navigate', { url })
     await stableText(cdp)
 
-    // 栏目条必须一进来就看得见。曾经它被藏进「菜单」按钮里，
-    // 手机上完全找不到 首页/项目/文章/关于 —— 这里就是防它回退的哨兵。
-    const nav = await cdp.evaluate(`(() => {
+    // 窄屏：栏目条收起、三条杠可见。两条都得成立，否则就是「导航既没摆出来也没按钮」
+    const header = await cdp.evaluate(`(() => {
       const n = document.querySelector('.nav')
+      const b = document.querySelector('.burger')
+      const cs = n ? getComputedStyle(n) : null
+      return {
+        navDisplay: cs ? cs.display : null,
+        burgerVisible: b ? b.getBoundingClientRect().height > 0 : false,
+        burgerLabel: b ? b.getAttribute('aria-label') : null,
+      }
+    })()`)
+
+    const opened = await cdp.evaluate(`(() => {
+      const b = document.querySelector('.burger')
+      if (!b) return null
+      b.click()
+      return true
+    })()`)
+    await sleep(400)
+
+    const menu = await cdp.evaluate(`(() => {
+      const n = document.querySelector('#site-menu')
       if (!n) return null
       const cs = getComputedStyle(n)
-      const box = n.getBoundingClientRect()
       return {
-        display: cs.display,
-        height: Math.round(box.height),
-        burger: !!document.querySelector('.burger'),
+        open: n.classList.contains('open'),
+        visible: cs.display !== 'none' && n.getBoundingClientRect().height > 0,
+        expanded: document.querySelector('.burger')?.getAttribute('aria-expanded') ?? null,
         links: [...n.querySelectorAll('a')].map((a) => a.textContent.trim()),
       }
     })()`)
 
-    // 点「关于」：栏目条真的能用才算过
+    // 从菜单点「关于」：这才是真正在验「手机上找得到关于」
     const clickedNav = await cdp.evaluate(`(() => {
-      const a = [...document.querySelectorAll('.nav a')].find((x) => x.textContent.trim() === '关于')
+      const a = [...document.querySelectorAll('#site-menu a')].find((x) => x.textContent.trim() === '关于')
       if (!a) return null
       a.click()
       return a.getAttribute('href')
@@ -439,6 +456,7 @@ async function mobileSmoke(port, url, localOrigin) {
     const about = await cdp.evaluate(`({
       path: location.pathname,
       h1: document.querySelector('h1')?.textContent.trim() ?? null,
+      menuClosedAfterNav: !document.querySelector('#site-menu')?.classList.contains('open'),
     })`)
 
     // 回首页点第一张文章卡片
@@ -459,7 +477,7 @@ async function mobileSmoke(port, url, localOrigin) {
       switchVisible: !!document.querySelector('.vsw'),
     })`)
 
-    return { nav, clickedNav, about, clicked, after }
+    return { header, opened, menu, clickedNav, about, clicked, after }
   } finally {
     await closePage(port, cdp, target)
   }
@@ -563,16 +581,21 @@ async function main() {
 
   const smokeOk =
     smokeFastJson === smokeNaiveJson &&
-    smokeFast.nav?.burger === false &&
-    (smokeFast.nav?.height ?? 0) > 0 &&
-    (smokeFast.nav?.links?.length ?? 0) >= 4 &&
+    smokeFast.header?.navDisplay === 'none' &&
+    smokeFast.header?.burgerVisible === true &&
+    smokeFast.menu?.open === true &&
+    smokeFast.menu?.visible === true &&
+    smokeFast.menu?.expanded === 'true' &&
+    (smokeFast.menu?.links?.length ?? 0) >= 4 &&
+    smokeFast.about?.menuClosedAfterNav === true &&
     smokeFast.about?.h1 != null &&
     smokeFast.after?.h1 != null &&
     smokeFast.after.path.includes('/articles/')
 
   if (smokeOk) {
-    console.log(`  [通过] 栏目条窄屏可见（${smokeFast.nav.links.join(' / ')}，没有菜单按钮）`)
-    console.log(`  [通过] 栏目可点：关于 → ${smokeFast.about.path}`)
+    console.log(`  [通过] 窄屏栏目条收起、三条杠可见（${smokeFast.header.burgerLabel}）`)
+    console.log(`  [通过] 菜单可展开（${smokeFast.menu.links.join(' / ')}）`)
+    console.log(`  [通过] 菜单可点：关于 → ${smokeFast.about.path}（跳完自动收起）`)
     console.log(`  [通过] 卡片可点进详情：${smokeFast.after.path}`)
     console.log(`  [通过] 标题渲染：${smokeFast.after.h1}`)
   } else {

@@ -52,11 +52,26 @@ export interface CreateCommentInput {
   authorName: string
 }
 
+/**
+ * 错误码。写成一个联合类型而不是 `string`，是为了让「拼错」变成编译错误：
+ * 调用方的 switch / if 一旦写错分支，编译器当场报出来，而不是安静地永远不命中。
+ */
+export type CommentErrorCode =
+  | 'EMPTY'
+  | 'TOO_LONG'
+  | 'BANNED'
+  | 'RATE_LIMITED'
+  | 'DUPLICATE'
+  | 'INVALID'
+  | 'FORBIDDEN'
+  | 'UNAUTHORIZED'
+  | 'UNKNOWN'
+
 /** 带错误码的评论异常，页面靠 code 决定怎么提示 */
 export class CommentError extends Error {
-  code: string
+  code: CommentErrorCode
 
-  constructor(code: string, message: string) {
+  constructor(code: CommentErrorCode, message: string) {
     super(message)
     this.name = 'CommentError'
     this.code = code
@@ -98,7 +113,7 @@ function translateError(error: { code?: string; message?: string }): CommentErro
     case 'PGRST301':
       return new CommentError('UNAUTHORIZED', '登录状态过期了，重新登录一下。')
     default:
-      return new CommentError(error.code ?? 'UNKNOWN', '请求失败了，稍后重试。')
+      return new CommentError('UNKNOWN', '请求失败了，稍后重试。')
   }
 }
 

@@ -20,7 +20,7 @@ import MarkdownIt from 'markdown-it'
 import { createHighlighter, type Highlighter } from 'shiki'
 import { readFileSync, existsSync } from 'node:fs'
 import type { Plugin } from 'vite'
-import type { PostFrontmatter, TocItem } from '../src/types/content'
+import type { PostFrontmatter, TocItem } from '../src/types/content.ts'
 
 /** 高亮用的语言。没列在这里的会退化成纯文本，不会报错。 */
 const LANGS = [

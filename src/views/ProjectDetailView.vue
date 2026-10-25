@@ -18,7 +18,9 @@ function splitBold(s: string): { text: string; bold: boolean }[] {
   let m: RegExpExecArray | null
   while ((m = re.exec(s)) !== null) {
     if (m.index > last) out.push({ text: s.slice(last, m.index), bold: false })
-    out.push({ text: m[1], bold: true })
+    // 正则里只有一个捕获组，m[1] 一定存在；写 ?? '' 是为了让 noUncheckedIndexedAccess
+    // 也能过，否则这里会变成 string | undefined。宁可多一个显式兜底，也不要关掉那个检查。
+    out.push({ text: m[1] ?? '', bold: true })
     last = m.index + m[0].length
   }
   if (last < s.length) out.push({ text: s.slice(last), bold: false })

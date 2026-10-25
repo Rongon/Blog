@@ -1,7 +1,7 @@
 import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import markdown from './plugins/markdown'
+import markdown from './plugins/markdown.ts'
 
 const srcDir = fileURLToPath(new URL('./src', import.meta.url))
 

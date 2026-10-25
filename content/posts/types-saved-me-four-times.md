@@ -1,6 +1,6 @@
 ---
 title: 类型救我四次，也放过我两次
-summary: 这个项目开了 strict，但真正拦住问题的不是 strict 本身，是几个具体的形状约定。也有两个地方它什么都没管。
+summary: 这个项目开了 strict，但真正拦住问题的不是 strict 本身，是几个具体的形状约定。被放过的两处，后来都补上了。
 category: 技术
 tags: [TypeScript, 工程实践]
 date: 2026-03-09
@@ -8,7 +8,7 @@ readingMinutes: 7
 cover: /images/covers/night-sky.webp
 ---
 
-这篇讲的是**类型在这个项目里到底拦住了什么**，以及它在哪两个地方一声不响地放过了我。
+这篇讲的是**类型在这个项目里到底拦住了什么**，以及那两个它曾经一声不响放过我的地方 —— 后来是怎么补上的。
 
 ![类型能证明的三层：形状、契约、业务](/images/tech/types-three-layers.webp)
 
@@ -102,23 +102,34 @@ if (entry) {
 }
 ```
 
-这里要坦白一句：**这一处其实是我的 `if` 在防，不是类型在防。**
+这里要坦白一句：**写这段代码的时候，拦下它的是我的 `if`，不是类型。**
 
-`tsconfig` 里开了 `strict`，但没有开 `noUncheckedIndexedAccess`。也就是说 `IMAGE_MANIFEST[raw]` 的类型被推成 `ImageEntry`，编译器认为它一定存在 —— 而实际上任何不在清单里的图片都会返回 `undefined`。
+那会儿 `tsconfig` 里只开了 `strict`，没开 `noUncheckedIndexedAccess`。也就是说 `IMAGE_MANIFEST[raw]` 的类型被推成 `ImageEntry`，编译器认为它一定存在 —— 而实际上任何不在清单里的图片都会返回 `undefined`。
 
 我当初写这个 `if` 是凭经验。如果哪天我删掉它，编译器不会拦，运行时会抛 `Cannot read properties of undefined`。
 
-## 放过我的第一次：索引访问
+## 补上的第一次：索引访问
 
-上面那条就是。修法很清楚：在 `tsconfig.json` 里加一行
+上面那条就是。修法在 `tsconfig.json` 里加一行：
 
 ```json
 "noUncheckedIndexedAccess": true
 ```
 
-我没有马上加，因为它会让整个项目里所有 `arr[i]`、`obj[key]` 都变成 `T | undefined`，得改一批地方。这是一个明确的欠账，写在这里比假装不存在好。
+我一直拖着没加，理由是「它会让所有 `arr[i]`、`obj[key]` 都变成 `T | undefined`，得改一批地方」。
 
-## 放过我的第二次：错误码是 string
+实际打开之后，编译错误只报了**一处**：
+
+```ts
+// 正则 exec 的结果里，捕获组 m[1] 在某些分支下确实是 undefined
+out.push({ text: m[1] ?? '', bold: true })
+```
+
+也就是说，那个「得改一批」的担心是凭印象估的。真正跑一遍的成本是补一个 `?? ''`。
+
+顺手记一句：**担心一件事的成本，和它真实的成本，经常差一个数量级。** 先量再决定顺不顺手，不只是性能优化的道理。
+
+## 补上的第二次：错误码是 string
 
 ```ts
 export class CommentError extends Error {
@@ -135,7 +146,7 @@ if (err.code === 'RATE_LIMITED') { /* ... */ }
 
 问题在于 `code` 的类型是 `string`。把 `'RATE_LIMITED'` 拼成 `'RATE_LIMTED'`（少一个 I），编译器一句话都不说，而这个分支永远不会命中 —— 用户看到的是兜底的「请求失败了」，真实原因被吞掉。
 
-正确做法是把它收成一个联合类型：
+现在收成了一个联合类型：
 
 ```ts
 export type CommentErrorCode =
@@ -144,7 +155,7 @@ export type CommentErrorCode =
   | 'FORBIDDEN' | 'UNAUTHORIZED' | 'UNKNOWN'
 ```
 
-然后 `code: CommentErrorCode`。拼错就是编译错误。这一条也是欠账。
+构造函数收 `CommentErrorCode`，拼错就是编译错误。顺带把一个隐式 bug 也关了：原来 `default` 分支写的是 `error.code ?? 'UNKNOWN'`，会把数据库的原始错误码原样传出去；现在一律归为 `'UNKNOWN'`，页面只需要认识那九个值。
 
 ## 类型能证明什么，不能证明什么
 
@@ -155,7 +166,5 @@ export type CommentErrorCode =
 | 形状对 | 能，编译期保证 | 字段名、字段类型、有没有漏 |
 | 契约对 | 能，编译期保证 | 组件要什么参数、函数返回什么 |
 | 业务对 | 不能 | 「评论该不该在这里显示」这种判断 |
-
-所以「这个项目开了 strict」不是一个可以拿去当卖点的句子。真正能说的是：**我知道类型在哪一层管用，也知道它在哪两个地方没管，那两处是我的人肉防御。**
 
 一句实话：写类型最大的收益不是「少写 bug」，是**改代码的时候不用靠记忆**。改一个接口，编译器会把所有受影响的地方列出来给你 —— 这是它替我省下的时间。

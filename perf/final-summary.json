@@ -1,0 +1,116 @@
+{
+  "fast": [
+    {
+      "perf": 99,
+      "fcp": 601,
+      "lcp": 694,
+      "tbt": 55,
+      "cls": 0,
+      "si": 1073,
+      "requests": 23,
+      "cachedHits": 0,
+      "transferKiB": 1286
+    },
+    {
+      "perf": 99,
+      "fcp": 410,
+      "lcp": 748,
+      "tbt": 13,
+      "cls": 0,
+      "si": 803,
+      "requests": 23,
+      "cachedHits": 0,
+      "transferKiB": 1286
+    },
+    {
+      "perf": 99,
+      "fcp": 629,
+      "lcp": 712,
+      "tbt": 19,
+      "cls": 0,
+      "si": 914,
+      "requests": 23,
+      "cachedHits": 0,
+      "transferKiB": 1286
+    },
+    {
+      "perf": 100,
+      "fcp": 455,
+      "lcp": 604,
+      "tbt": 0,
+      "cls": 0,
+      "si": 771,
+      "requests": 23,
+      "cachedHits": 0,
+      "transferKiB": 1286
+    },
+    {
+      "perf": 100,
+      "fcp": 371,
+      "lcp": 451,
+      "tbt": 15,
+      "cls": 0,
+      "si": 668,
+      "requests": 23,
+      "cachedHits": 0,
+      "transferKiB": 1286
+    }
+  ],
+  "slow": [
+    {
+      "perf": 48,
+      "fcp": 1239,
+      "lcp": 9259,
+      "tbt": 57,
+      "cls": 0.592611,
+      "si": 1479,
+      "requests": 21,
+      "cachedHits": 0,
+      "transferKiB": 28551
+    },
+    {
+      "perf": 52,
+      "fcp": 653,
+      "lcp": 8673,
+      "tbt": 71,
+      "cls": 0.547544,
+      "si": 968,
+      "requests": 21,
+      "cachedHits": 0,
+      "transferKiB": 28551
+    },
+    {
+      "perf": 46,
+      "fcp": 1316,
+      "lcp": 9336,
+      "tbt": 75,
+      "cls": 0.592745,
+      "si": 1740,
+      "requests": 21,
+      "cachedHits": 0,
+      "transferKiB": 28551
+    },
+    {
+      "perf": 76,
+      "fcp": 699,
+      "lcp": 5579,
+      "tbt": 40,
+      "cls": 0.000277,
+      "si": 731,
+      "requests": 21,
+      "cachedHits": 0,
+      "transferKiB": 28551
+    },
+    {
+      "perf": 70,
+      "fcp": 1452,
+      "lcp": 6332,
+      "tbt": 33,
+      "cls": 0.000277,
+      "si": 1452,
+      "requests": 21,
+      "cachedHits": 0,
+      "transferKiB": 28551
+    }
+  ]
+}

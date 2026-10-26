@@ -103,8 +103,8 @@ function chartTransfer(slow, fast) {
   ]
 
   const rows = [
-    { y: 210, h: 76, name: '优化前', data: slow, note: 'v0-naive' },
-    { y: 330, h: 76, name: '优化后', data: fast, note: '当前线上' },
+    { y: 210, h: 76, name: '优化前', data: slow, note: '/Blog/naive/' },
+    { y: 330, h: 76, name: '优化后', data: fast, note: '/Blog/' },
   ]
 
   let body = ''
@@ -142,7 +142,7 @@ function chartTransfer(slow, fast) {
   }
 
   body += line(120, 480, WIDTH - 120, 480)
-  body += text(120, 508, '数据来源：perf/cold-slow-run*.json、perf/cold-fast-run*.json　Lighthouse 13.5.0 --preset=desktop', {
+  body += text(120, 508, '数据来源：perf/final-slow-run*.json、perf/final-fast-run*.json　Lighthouse 13.5.0 --preset=desktop', {
     size: 16,
     fill: C.muted,
   })
@@ -197,10 +197,23 @@ function chartSteps(steps) {
   })
 
   body += line(left, 520, WIDTH - 120, 520)
-  body += text(120, 552, '前两项（转 WebP、加 srcset）拿走了 97% 的收益；后面八项合计只降了 0.7 MB。', {
-    size: 18,
+  // 这两句从数据算出来，不写死 —— 改一次数据就得跟着改文字，是上一版的教训
+  const first = steps[0].total
+  const afterTwo = steps[2].total
+  const last = steps[steps.length - 1].total
+  const totalGain = first - last
+  const firstTwoGain = first - afterTwo
+  const restGain = afterTwo - last
+  body += text(
+    120,
+    552,
+    `前两项（转 WebP、加 srcset）拿走了 ${Math.round((firstTwoGain / totalGain) * 100)}% 的收益；后面八项合计只降了 ${mb(restGain)}。`,
+    { size: 18 },
+  )
+  body += text(120, 580, '数据来源：perf/baseline-desktop.json 与 perf/step*.json（每项当时的实测），末点是定稿后重测', {
+    size: 16,
+    fill: C.muted,
   })
-  body += text(120, 580, '数据来源：perf/baseline-desktop.json 与 perf/step*.json', { size: 16, fill: C.muted })
 
   return frame(H, body)
 }
@@ -250,10 +263,15 @@ function chartRuns(fastRuns, slowRuns) {
   }
 
   body += line(left, 480, WIDTH - 120, 480)
-  body += text(120, 512, '优化前 38–52 分（中位 46），优化后 94–97 分（中位 95）。区间本身就是结论的一部分。', {
-    size: 18,
-  })
-  body += text(120, 540, '数据来源：perf/cold-*-run1…5.json', { size: 16, fill: C.muted })
+  const slowRange = `${Math.min(...slowRuns.map((r) => r.perf))}–${Math.max(...slowRuns.map((r) => r.perf))}`
+  const fastRange = `${Math.min(...fastRuns.map((r) => r.perf))}–${Math.max(...fastRuns.map((r) => r.perf))}`
+  body += text(
+    120,
+    512,
+    `优化前 ${slowRange} 分（中位 ${median(slowRuns.map((r) => r.perf))}），优化后 ${fastRange} 分（中位 ${median(fastRuns.map((r) => r.perf))}）。区间本身就是结论的一部分。`,
+    { size: 18 },
+  )
+  body += text(120, 540, '数据来源：perf/final-*-run1…5.json', { size: 16, fill: C.muted })
 
   return frame(H, body)
 }
@@ -291,9 +309,9 @@ for (const [short, label, files] of STEP_FILES) {
 }
 
 const fastRuns = []
-for (let i = 1; i <= 5; i++) fastRuns.push(measure(await load(`cold-fast-run${i}.json`)))
+for (let i = 1; i <= 5; i++) fastRuns.push(measure(await load(`final-fast-run${i}.json`)))
 const slowRuns = []
-for (let i = 1; i <= 5; i++) slowRuns.push(measure(await load(`cold-slow-run${i}.json`)))
+for (let i = 1; i <= 5; i++) slowRuns.push(measure(await load(`final-slow-run${i}.json`)))
 
 const slow = {
   total: median(slowRuns.map((r) => r.total)),
@@ -309,6 +327,19 @@ const fast = {
   css: median(fastRuns.map((r) => r.css)),
   font: median(fastRuns.map((r) => r.font)),
 }
+
+// 折线的末点是「定稿后」的实测，和逐项记录不是同一天的数据：
+// 中间首页改过版（文章卡从 8 张变 9 张、换了更重的封面），所以末点会比 v9 略高。
+// 把两个都画出来，读者看到的是真实的两段，而不是被抹平的一条直线。
+steps.push({
+  short: '定稿',
+  label: '定稿',
+  total: fast.total,
+  image: fast.image,
+  script: fast.script,
+  css: fast.css,
+  font: fast.font,
+})
 
 /* ---------- 图 4：乐观更新的状态流转（示意图，无数据依赖） ---------- */
 

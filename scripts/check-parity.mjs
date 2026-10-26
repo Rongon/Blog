@@ -444,8 +444,39 @@ async function mobileSmoke(port, url, localOrigin) {
       }
     })()`)
 
+    // 点菜单和三条杠以外的地方，应该自己收回去。
+    // 注意：Vue 的 DOM 更新是异步的，点完必须等一帧再读 class，否则读到的是旧状态。
+    const outsideClose = await cdp.evaluate(`(async () => {
+      const tick = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+      const burger = document.querySelector('.burger')
+      const menuOf = () => document.querySelector('#site-menu')
+      const isOpen = () => menuOf().classList.contains('open')
+
+      if (!isOpen()) burger.click()
+      await tick()
+      const opened = isOpen()
+
+      document.querySelector('h1')?.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
+      await tick()
+      const afterOutside = !isOpen()
+
+      burger.click()
+      await tick()
+      const reopened = isOpen()
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+      await tick()
+      const afterEsc = !isOpen()
+
+      return { opened, afterOutside, reopened, afterEsc }
+    })()`)
+    await sleep(200)
+
     // 从菜单点「关于」：这才是真正在验「手机上找得到关于」
     const clickedNav = await cdp.evaluate(`(() => {
+      if (!document.querySelector('#site-menu')?.classList.contains('open')) {
+        document.querySelector('.burger')?.click()
+      }
       const a = [...document.querySelectorAll('#site-menu a')].find((x) => x.textContent.trim() === '关于')
       if (!a) return null
       a.click()
@@ -477,7 +508,7 @@ async function mobileSmoke(port, url, localOrigin) {
       switchVisible: !!document.querySelector('.vsw'),
     })`)
 
-    return { header, opened, menu, clickedNav, about, clicked, after }
+    return { header, opened, menu, outsideClose, clickedNav, about, clicked, after }
   } finally {
     await closePage(port, cdp, target)
   }
@@ -587,6 +618,10 @@ async function main() {
     smokeFast.menu?.visible === true &&
     smokeFast.menu?.expanded === 'true' &&
     (smokeFast.menu?.links?.length ?? 0) >= 4 &&
+    smokeFast.outsideClose?.opened === true &&
+    smokeFast.outsideClose?.afterOutside === true &&
+    smokeFast.outsideClose?.reopened === true &&
+    smokeFast.outsideClose?.afterEsc === true &&
     smokeFast.about?.menuClosedAfterNav === true &&
     smokeFast.about?.h1 != null &&
     smokeFast.after?.h1 != null &&
@@ -596,6 +631,7 @@ async function main() {
     console.log(`  [通过] 窄屏栏目条收起、三条杠可见（${smokeFast.header.burgerLabel}）`)
     console.log(`  [通过] 菜单可展开（${smokeFast.menu.links.join(' / ')}）`)
     console.log(`  [通过] 菜单可点：关于 → ${smokeFast.about.path}（跳完自动收起）`)
+    console.log('  [通过] 点菜单以外的地方会收起，Esc 也收起')
     console.log(`  [通过] 卡片可点进详情：${smokeFast.after.path}`)
     console.log(`  [通过] 标题渲染：${smokeFast.after.h1}`)
   } else {

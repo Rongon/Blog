@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, ref, watch } from 'vue'
+import { defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useTheme } from '@/composables/useTheme'
 import { hasOAuthCallback, hasStoredSession } from '@/lib/authStorage'
@@ -94,6 +94,44 @@ watch(
     menuOpen.value = false
   },
 )
+
+/**
+ * 菜单打开后，除了点菜单项和三条杠本身，点哪儿都该收回去。
+ *
+ * 【为什么用 pointerdown 而不是 click】click 要等手指抬起来，而且如果用户是想点
+ * 菜单底下露出来的东西（比如首屏那个「读文章」），pointerdown 先收起菜单、
+ * 紧接着 click 照常落到那个链接上 —— 一次点击既要「关菜单」又要「进页面」，
+ * 不会变成连点两次。用 click 的话这一下会被菜单吃掉。
+ *
+ * 【不能 preventDefault】那样就把下面那个点击也拦掉了。
+ *
+ * Esc 一起挂在同一个函数里：桌面窄窗口调过宽度之后也会用这个菜单，
+ * 键盘用户按 Esc 收起来是通用预期。
+ */
+const burgerRef = ref<HTMLButtonElement | null>(null)
+const menuRef = ref<HTMLElement | null>(null)
+
+function onDocPointerDown(event: PointerEvent) {
+  if (!menuOpen.value) return
+  const target = event.target as Node | null
+  if (!target) return
+  if (burgerRef.value?.contains(target) || menuRef.value?.contains(target)) return
+  menuOpen.value = false
+}
+
+function onDocKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape' && menuOpen.value) menuOpen.value = false
+}
+
+onMounted(() => {
+  document.addEventListener('pointerdown', onDocPointerDown)
+  document.addEventListener('keydown', onDocKeydown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', onDocPointerDown)
+  document.removeEventListener('keydown', onDocKeydown)
+})
 </script>
 
 <template>
@@ -126,6 +164,7 @@ watch(
       <!-- 窄屏的三条杠。用图标而不是「菜单」两个字：三条杠是通用约定，
            而「菜单」两个汉字在小按钮里既挤又不像按钮。 -->
       <button
+        ref="burgerRef"
         class="burger"
         type="button"
         :class="{ open: menuOpen }"
@@ -142,7 +181,7 @@ watch(
       </button>
     </div>
 
-    <nav id="site-menu" class="menu" :class="{ open: menuOpen }">
+    <nav id="site-menu" ref="menuRef" class="menu" :class="{ open: menuOpen }">
       <RouterLink v-for="item in nav" :key="item.to" :to="item.to">
         {{ item.label }}
       </RouterLink>

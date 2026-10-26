@@ -10,7 +10,7 @@ cover: /images/covers/mountains.webp
 
 这个站做过一轮完整的性能优化，一共十项改动。首屏传输量从 29.2 MB 降到 1.3 MB，Lighthouse 的 Performance 中位数从 52 到 99。
 
-优化前的版本还在线上（`/naive/`），点开可以直接对比。
+优化前的版本还在线上（`/Blog/naive/`），点开可以直接对比。
 
 先给结论：
 

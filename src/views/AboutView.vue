@@ -7,7 +7,6 @@
  */
 
 const contact = [
-  { label: 'GitHub', value: 'github.com/Rongon', href: 'https://github.com/Rongon' },
   // href 留空 = 渲染成纯文本，不做成 mailto 链接
   { label: '邮箱', value: '13035813904@163.com', href: '' },
 ]
@@ -81,7 +80,7 @@ const timeline = [
         <section class="sec">
           <h2>这个站是怎么做的</h2>
           <ul>
-            <li>纯前端，没有自己的后端：内容以 Markdown 存在仓库里，构建时编译成页面。</li>
+            <li>内容以 Markdown 存在仓库里，构建时编译成页面。</li>
             <li>登录与评论走云服务；数据层抽成适配器，换实现不影响页面代码。</li>
             <li>性能优化做了逐项实测，站内有优化前后两个版本可以对照。</li>
           </ul>
